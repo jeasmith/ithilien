@@ -13,7 +13,7 @@ Thanks for your interest in contributing to Ithilien.
 
 ```bash
 # Clone the repository
-git clone https://github.com/jamessmith/ithilien.git
+git clone https://github.com/jeasmith/ithilien.git
 cd ithilien
 
 # Install dependencies

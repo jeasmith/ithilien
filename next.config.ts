@@ -17,7 +17,11 @@ const nextConfig: NextConfig = {
   output: "export",
   /** Generate clean URLs without trailing slashes. */
   trailingSlash: false,
-  /** Opt in to the built-in image optimisation at build time. */
+  /**
+   * Disable Next.js image optimisation. The default loader relies on a
+   * runtime optimisation endpoint which is incompatible with
+   * `output: "export"`, so we serve images as-is from the static bundle.
+   */
   images: {
     unoptimized: true,
   },

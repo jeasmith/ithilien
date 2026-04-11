@@ -48,7 +48,7 @@ export default function HomePage() {
               /
             </span>
             <a
-              href="https://github.com/jamessmith/ithilien"
+              href="https://github.com/jeasmith/ithilien"
               className="underline underline-offset-4 transition-colors hover:text-foreground"
               target="_blank"
               rel="noopener noreferrer"

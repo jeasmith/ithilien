@@ -19,7 +19,7 @@ updates:
       timezone: "Europe/London"
     open-pull-requests-limit: 10
     reviewers:
-      - "jamessmith"
+      - "jeasmith"
     groups:
       # Group all non-major production dependency updates
       production-dependencies:
@@ -48,6 +48,6 @@ updates:
       timezone: "Europe/London"
     open-pull-requests-limit: 5
     reviewers:
-      - "jamessmith"
+      - "jeasmith"
     commit-message:
       prefix: "ci"
