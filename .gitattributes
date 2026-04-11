@@ -47,6 +47,10 @@
 *.ico filter=lfs diff=lfs merge=lfs -text
 *.bmp filter=lfs diff=lfs merge=lfs -text
 
+# Next.js consumes the app favicon during build, so this specific ICO must be
+# committed directly instead of relying on a Git LFS checkout.
+src/app/favicon.ico -filter -diff -merge -text
+
 # -- Fonts -------------------------------------------------------------------
 *.woff filter=lfs diff=lfs merge=lfs -text
 *.woff2 filter=lfs diff=lfs merge=lfs -text
