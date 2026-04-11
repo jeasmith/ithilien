@@ -36,7 +36,10 @@ describe("HomePage", () => {
     render(<HomePage />);
 
     const link = screen.getByRole("link", { name: /source on github/i });
-    expect(link).toHaveAttribute("href", expect.stringContaining("github.com"));
+    expect(link).toHaveAttribute(
+      "href",
+      "https://github.com/jeasmith/ithilien",
+    );
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });

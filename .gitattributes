@@ -9,6 +9,34 @@
 # To verify:             git lfs ls-files
 # ============================================================================
 
+# ============================================================================
+# Line-ending normalisation for text files
+#
+# This must come BEFORE any binary `-text` rules below, otherwise the global
+# `text=auto` attribute would override the binary flags for LFS patterns.
+# ============================================================================
+* text=auto
+
+# Force LF for web source files (prevents CRLF issues across platforms)
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.mdx text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.sh text eol=lf
+
+# SVGs are text-based XML; track them with normal Git for diffable history.
+*.svg text eol=lf
+
 # -- Images ------------------------------------------------------------------
 *.png filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
@@ -17,7 +45,6 @@
 *.webp filter=lfs diff=lfs merge=lfs -text
 *.avif filter=lfs diff=lfs merge=lfs -text
 *.ico filter=lfs diff=lfs merge=lfs -text
-*.svg filter=lfs diff=lfs merge=lfs -text
 *.bmp filter=lfs diff=lfs merge=lfs -text
 
 # -- Fonts -------------------------------------------------------------------
@@ -54,25 +81,3 @@
 
 # -- Misc binaries -----------------------------------------------------------
 *.wasm filter=lfs diff=lfs merge=lfs -text
-
-# ============================================================================
-# Line-ending normalisation for text files
-# ============================================================================
-* text=auto
-
-# Force LF for web source files (prevents CRLF issues across platforms)
-*.ts text eol=lf
-*.tsx text eol=lf
-*.js text eol=lf
-*.mjs text eol=lf
-*.cjs text eol=lf
-*.jsx text eol=lf
-*.json text eol=lf
-*.css text eol=lf
-*.html text eol=lf
-*.md text eol=lf
-*.mdx text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-*.toml text eol=lf
-*.sh text eol=lf
