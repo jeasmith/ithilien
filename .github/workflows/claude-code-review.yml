@@ -6,6 +6,9 @@ on:
 
 jobs:
   claude-review:
+    concurrency:
+      group: claude-code-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     permissions:
       contents: read
