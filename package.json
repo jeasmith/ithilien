@@ -54,7 +54,7 @@
     "prettier": "^3.8.2",
     "serve": "14.2.6",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "typescript": "^6",
     "vitest": "^4.1.4"
   }
 }
