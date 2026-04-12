@@ -9,6 +9,9 @@
  */
 import Link from "next/link";
 
+/** Year captured when this module is evaluated during `next build` (static HTML). */
+const COPYRIGHT_YEAR = new Date().getFullYear();
+
 /** Renders the landing page with site intro, metadata links, and footer. */
 export default function HomePage() {
   return (
@@ -62,7 +65,7 @@ export default function HomePage() {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-6 text-sm text-muted-foreground">
-          <span>&copy; {new Date().getFullYear()} Jamie Smith</span>
+          <span>&copy; {COPYRIGHT_YEAR} Jamie Smith</span>
           <span>MIT License</span>
         </div>
       </footer>

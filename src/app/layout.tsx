@@ -4,6 +4,18 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
+/**
+ * App Router + `output: "export"`: pin the tree to static prerendering so
+ * request-time APIs fail loudly during `next build` instead of slipping in
+ * dynamic behavior. Vercel serves the resulting `out/` assets like any static
+ * host; platform features (Analytics, Speed Insights, `vercel.json` headers)
+ * stay at the edge layer.
+ *
+ * @see https://nextjs.org/docs/app/guides/static-exports
+ * @see https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamic
+ */
+export const dynamic = "force-static";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

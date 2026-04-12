@@ -37,6 +37,18 @@ static files that can be served from any CDN or static hosting provider.
   S3, GitHub Pages — reducing vendor lock-in.
 - **Cost**: Static hosting on Vercel's free tier is more than sufficient.
 
+### Vercel and Next.js alignment
+
+- **`next build` produces `out/`** — same artifact locally and on Vercel; no
+  `next start` or Node server is required for the static site.
+- **Do not use `next.config` `headers` / `redirects` / `rewrites`** with static
+  export; those need a Next.js runtime. Prefer **`vercel.json`** (or the
+  project dashboard) for response headers and routing at the edge.
+- **Explicit static segments** — the root layout exports
+  `dynamic = 'force-static'` so the App Router stays prerender-only and
+  accidental use of request-time APIs surfaces at build time (see Next.js route
+  segment config).
+
 ### Negative
 
 - **No server-side features**: API routes, middleware, ISR, and server-side
@@ -54,5 +66,7 @@ static files that can be served from any CDN or static hosting provider.
 
 ## References
 
-- [Next.js — Static Exports](https://nextjs.org/docs/app/building-your-application/deploying/static-exports)
+- [Next.js — Static Exports](https://nextjs.org/docs/app/guides/static-exports)
 - [Next.js — Output Configuration](https://nextjs.org/docs/app/api-reference/config/next-config-js/output)
+- [Next.js — Route Segment Config (`dynamic`)](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamic)
+- [Vercel — Next.js on Vercel](https://vercel.com/docs/frameworks/nextjs)
