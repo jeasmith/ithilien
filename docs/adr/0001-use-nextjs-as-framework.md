@@ -62,4 +62,4 @@ goal of experimenting with different delivery methods.
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Next.js App Router](https://nextjs.org/docs/app)
-- [Static Exports](https://nextjs.org/docs/app/building-your-application/deploying/static-exports)
+- [Static Exports](https://nextjs.org/docs/app/guides/static-exports)
