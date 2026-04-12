@@ -65,3 +65,4 @@ Tailwind CSS.
 - [shadcn/ui](https://ui.shadcn.com)
 - [Base UI](https://base-ui.com)
 - [Tailwind CSS v4](https://tailwindcss.com/blog/tailwindcss-v4)
+- [ADR-0009: Use Tailwind CSS v4 for Styling](./0009-use-tailwind-css-v4-for-styling.md)

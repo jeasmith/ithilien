@@ -44,8 +44,8 @@ const buttonVariants = cva(
 /** Styled button component built on Base UI with variant and size props. */
 function Button({
   className,
-  variant = "default",
-  size = "default",
+  variant,
+  size,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
