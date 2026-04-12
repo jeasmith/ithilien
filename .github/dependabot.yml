@@ -1,0 +1,53 @@
+# Dependabot configuration.
+#
+# Keeps dependencies up to date and flags security vulnerabilities.
+# Grouped updates reduce PR noise — a single PR for all patch-level bumps
+# in a given ecosystem rather than one PR per package.
+#
+# @see docs/adr/0002-use-pnpm-as-package-manager.md
+
+version: 2
+
+updates:
+  # npm / pnpm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "jeasmith"
+    groups:
+      # Group all non-major production dependency updates
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group all non-major dev dependency updates
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    # Security updates are always created regardless of grouping
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps(dev)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "jeasmith"
+    commit-message:
+      prefix: "ci"
