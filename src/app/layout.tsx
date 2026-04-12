@@ -29,6 +29,7 @@ export const metadata: Metadata = {
   },
 };
 
+/** Root layout that wraps every page with shared fonts, analytics, and base styles. */
 export default function RootLayout({
   children,
 }: Readonly<{

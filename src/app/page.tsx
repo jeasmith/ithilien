@@ -9,6 +9,7 @@
  */
 import Link from "next/link";
 
+/** Renders the landing page with site intro, metadata links, and footer. */
 export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
