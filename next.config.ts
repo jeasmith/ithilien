@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  * Uses the standard Next.js production server so local production runs and
  * Vercel deployments share the same Next.js runtime behavior.
  *
- * @see docs/adr/0009-use-the-nextjs-production-server.md
+ * @see docs/adr/0010-use-the-nextjs-production-server.md
  */
 const nextConfig: NextConfig = {
   trailingSlash: false,

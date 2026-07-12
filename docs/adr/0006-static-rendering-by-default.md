@@ -2,7 +2,7 @@
 
 ## Status
 
-Superseded by [ADR-0009](0009-use-the-nextjs-production-server.md)
+Superseded by [ADR-0010](0010-use-the-nextjs-production-server.md)
 
 ## Context
 

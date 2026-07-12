@@ -1,4 +1,4 @@
-# ADR-0009: Use the Next.js Production Server
+# ADR-0010: Use the Next.js Production Server
 
 ## Status
 
