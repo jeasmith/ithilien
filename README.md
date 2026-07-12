@@ -19,7 +19,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | Command          | Description                              |
 | ---------------- | ---------------------------------------- |
 | `pnpm dev`       | Start the development server (Turbopack) |
-| `pnpm build`     | Build the production static export       |
+| `pnpm build`     | Build the production application         |
+| `pnpm start`     | Start the Next.js production server      |
 | `pnpm lint`      | Run ESLint                               |
 | `pnpm typecheck` | Run TypeScript type checking             |
 | `pnpm format`    | Format code with Prettier                |
@@ -35,7 +36,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Hosting      | Vercel         | [ADR-0003](docs/adr/0003-deploy-on-vercel.md)                    |
 | Components   | shadcn/ui      | [ADR-0004](docs/adr/0004-use-shadcn-for-components.md)           |
 | Testing      | Vitest         | [ADR-0005](docs/adr/0005-use-vitest-for-testing.md)              |
-| Rendering    | Static (SSG)   | [ADR-0006](docs/adr/0006-static-rendering-by-default.md)         |
+| Rendering    | Next.js Server | [ADR-0010](docs/adr/0010-use-the-nextjs-production-server.md)    |
 | CI           | GitHub Actions | [ADR-0007](docs/adr/0007-ci-pipeline-with-github-actions.md)     |
 | Dep Security | Dependabot     | [ADR-0008](docs/adr/0008-dependency-security-with-dependabot.md) |
 
