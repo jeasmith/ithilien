@@ -14,6 +14,10 @@ simple content, others demonstrate different rendering and delivery methods.
 - **Styling**: Tailwind CSS v4 + shadcn/ui components
 - **Testing**: Vitest + React Testing Library
 - **Linting**: oxlint (`.oxlintrc.json`) + Prettier
+- **Runtime**: Node.js 24 LTS — pinned in `.nvmrc`, `engines.node` and the
+  Dockerfile. Vercel offers 24.x, 22.x and 20.x only, so 24 is the newest
+  version that keeps local, CI and production on the same major.
+- **Local dev**: Docker (`compose.yaml`) so the host needs no Node.js
 - **Hosting**: Vercel (static export)
 
 ## Project Structure
@@ -39,6 +43,17 @@ pnpm build          # Production build (static export)
 pnpm test           # Run tests
 pnpm validate       # Run lint + typecheck + format check + tests
 ```
+
+The same commands run in Docker, which needs no host Node.js:
+
+```bash
+docker compose up dev                      # Dev server on :3000
+docker compose run --rm dev pnpm validate  # Any script, one-off
+```
+
+Never bind-mount the host's `node_modules` into the container — oxlint and
+`oxlint-tsgolint` ship platform-native binaries, so the container keeps its own
+copy in a named volume.
 
 ## Conventions
 
