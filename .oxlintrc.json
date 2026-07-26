@@ -21,6 +21,9 @@
     "browser": true,
     "es2024": true
   },
+  "options": {
+    "typeAware": true
+  },
   "jsPlugins": [
     {
       "name": "react-compiler",
