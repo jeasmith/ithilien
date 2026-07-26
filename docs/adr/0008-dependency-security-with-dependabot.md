@@ -32,11 +32,17 @@ alerts.
 
 Configuration is defined in `.github/dependabot.yml` with:
 
-- **Grouped updates**: Minor and patch updates are grouped into a single PR per
-  category (production vs. dev) to reduce noise.
+- **Toolchain family groups**: Packages that must move together — Next.js and
+  React, the Vitest/Vite test stack, the lint and format tools, the styling
+  stack — are grouped by name pattern, and those groups include **major**
+  bumps. A React major without the matching `@types/react` does not typecheck,
+  so splitting them across PRs produces PRs that cannot pass CI individually.
+- **Catch-all groups**: Anything not matched by a family group is grouped into a
+  single production PR and a single dev PR, minor and patch only, so an
+  unanticipated major still lands in its own reviewable PR.
 - **Weekly schedule**: Updates are checked every Monday morning.
-- **GitHub Actions updates**: The CI workflow's action versions are also kept
-  up to date.
+- **GitHub Actions updates**: Action versions are kept up to date and grouped
+  into a single PR — these bumps are low-risk and reviewed as a batch.
 
 ## Consequences
 
@@ -54,7 +60,11 @@ Configuration is defined in `.github/dependabot.yml` with:
 
 - Dependabot's grouping and auto-merge capabilities are less flexible than
   Renovate's.
-- Major version updates still create individual PRs and require manual review.
+- Grouping majors by family means one bad bump blocks the rest of its group
+  until the PR is fixed or the offending package is pinned. This is the
+  deliberate trade for not having to land four coupled PRs in the right order.
+- Group membership is defined by name patterns, so a newly added package falls
+  into a catch-all group until someone adds it to the right family list.
 
 ### Neutral
 
