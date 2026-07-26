@@ -13,7 +13,7 @@ simple content, others demonstrate different rendering and delivery methods.
 - **Package Manager**: pnpm 10
 - **Styling**: Tailwind CSS v4 + shadcn/ui components
 - **Testing**: Vitest + React Testing Library
-- **Linting**: ESLint (flat config) + Prettier
+- **Linting**: oxlint (`.oxlintrc.json`) + Prettier
 - **Hosting**: Vercel (static export)
 
 ## Project Structure
@@ -50,8 +50,9 @@ pnpm validate       # Run lint + typecheck + format check + tests
   are source files we own, not imported from a package.
 - **Testing**: Tests live alongside their source in `__tests__/` directories.
   Use React Testing Library — test behaviour, not implementation.
-- **Formatting**: Prettier handles formatting. ESLint handles logic rules.
-  Both must pass in CI.
+- **Formatting**: Prettier handles formatting. oxlint handles logic rules,
+  including type-aware ones via `oxlint-tsgolint`. Both must pass in CI.
+  There is no ESLint — see `docs/adr/0012-upgrade-to-typescript-7.md`.
 - **No secrets in code**: All environment variables go through Vercel env
   config.
 

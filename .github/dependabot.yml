@@ -53,8 +53,13 @@ updates:
           - "major"
           - "minor"
           - "patch"
+      # oxlint-tsgolint's version encodes the TypeScript version it targets
+      # (7.0.2001 = TypeScript 7.0.2), and oxlint peers on it, so the linter
+      # and the compiler have to move together.
       linting:
         patterns:
+          - "oxlint"
+          - "oxlint-*"
           - "eslint"
           - "@eslint/*"
           - "eslint-plugin-*"
