@@ -1,10 +1,14 @@
 # Dependabot configuration.
 #
 # Keeps dependencies up to date and flags security vulnerabilities.
-# Grouped updates reduce PR noise — a single PR for all patch-level bumps
-# in a given ecosystem rather than one PR per package.
+# Grouped updates reduce PR noise — one PR per toolchain family (including
+# major bumps, since packages in a family must move together) and one catch-all
+# PR each for remaining production and dev minor/patch bumps.
 #
-# @see docs/adr/0002-use-pnpm-as-package-manager.md
+# Groups are matched in the order defined below: a package lands in the first
+# group whose patterns it matches.
+#
+# @see docs/adr/0008-dependency-security-with-dependabot.md
 
 version: 2
 
@@ -21,13 +25,70 @@ updates:
     reviewers:
       - "jeasmith"
     groups:
-      # Group all non-major production dependency updates
+      # Next.js and React move in lockstep — a React major without matching
+      # @types/react (or an eslint-config-next matching the Next version) does
+      # not typecheck, so these belong in one PR.
+      next-react:
+        patterns:
+          - "next"
+          - "eslint-config-next"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+      # Vitest and its Vite peer must share a major.
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "vite"
+          - "@vitejs/*"
+          - "jsdom"
+          - "@testing-library/*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+      linting:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "eslint-plugin-*"
+          - "eslint-config-*"
+          - "typescript-eslint"
+          - "typescript"
+          - "prettier"
+          - "prettier-plugin-*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+      styling:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "tw-animate-css"
+          - "postcss"
+          - "clsx"
+          - "tailwind-merge"
+          - "class-variance-authority"
+          - "shadcn"
+          - "@base-ui/*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+      # Everything not covered above: non-major bumps only, so a stray major
+      # still lands in its own reviewable PR.
       production-dependencies:
         dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
-      # Group all non-major dev dependency updates
       dev-dependencies:
         dependency-type: "development"
         update-types:
@@ -49,5 +110,14 @@ updates:
     open-pull-requests-limit: 5
     reviewers:
       - "jeasmith"
+    groups:
+      # Action bumps are low-risk and reviewed as a batch — one PR for all.
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
     commit-message:
       prefix: "ci"
