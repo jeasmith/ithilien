@@ -18,7 +18,7 @@ the TypeScript major version. `typescript-eslint` parses through
 compiler API directly and declares a peer range of `>=4.8.4 <6.1.0`. Installing
 TypeScript 7.0.2 makes ESLint crash on startup:
 
-```
+```text
 TypeError: Cannot read properties of undefined (reading 'Cjs')
   at @typescript-eslint/typescript-estree/dist/create-program/shared.js:59
 ```

@@ -50,8 +50,8 @@ only linter.
   `jsPlugins` mechanism, aliased to `react-compiler` to avoid colliding with
   Oxlint's native `react` plugin. Oxlint parses TypeScript and JSX with its own
   Rust parser, so the plugin runs without any TypeScript-derived parser. All 16
-  React Compiler rules plus `rules-of-hooks` and `exhaustive-deps` are enabled
-  from the real React implementation.
+  of its rules are enabled from the real React implementation: `rules-of-hooks`,
+  `exhaustive-deps`, and 14 React Compiler diagnostics.
 - The 14 rules ESLint was contributing that Oxlint supports but had not enabled
   are now listed explicitly in `.oxlintrc.json` rather than left to category
   defaults.
@@ -95,8 +95,12 @@ variables as used for `no-unused-vars`, which Oxlint handles natively for JSX).
 - Prettier is untouched. `eslint-config-prettier` was removed because Oxlint's
   formatting-adjacent categories (`style`) are not enabled, so there is nothing
   to conflict with.
-- `pnpm lint` now runs `oxlint --type-aware --deny-warnings`; `pnpm lint:fix`
-  runs `oxlint --type-aware --fix`.
+- Type-aware linting is switched on via `options.typeAware` in `.oxlintrc.json`
+  rather than a CLI flag, so editor integrations and bare `oxlint` runs get the
+  same rules as CI. `pnpm lint` is just `oxlint --deny-warnings`.
+- `engines.node` was raised from `>=20` to `^20.19.0 || >=22.12.0` to match
+  Oxlint's own requirement. Node 20.0–20.18 and Node 21 satisfied the old range
+  but cannot run Oxlint's native bindings.
 
 ## References
 
