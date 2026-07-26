@@ -21,7 +21,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm dev`       | Start the development server (Turbopack) |
 | `pnpm build`     | Build the production application         |
 | `pnpm start`     | Start the Next.js production server      |
-| `pnpm lint`      | Run ESLint                               |
+| `pnpm lint`      | Run oxlint (including type-aware rules)  |
 | `pnpm typecheck` | Run TypeScript type checking             |
 | `pnpm format`    | Format code with Prettier                |
 | `pnpm test`      | Run tests                                |

@@ -2,7 +2,13 @@
 
 ## Status
 
-Proposed
+Superseded by [ADR-0012](0012-upgrade-to-typescript-7.md)
+
+The "alongside" arrangement described here was short-lived. Once Oxlint's
+`jsPlugins` were found to run `eslint-plugin-react-hooks` directly — the only
+rules ESLint still contributed — keeping ESLint bought nothing, and removing it
+was what unblocked TypeScript 7. The context and rule-coverage analysis below
+remain accurate and are the reasoning ADR-0012 builds on.
 
 ## Context
 

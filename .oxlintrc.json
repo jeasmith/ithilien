@@ -21,9 +21,45 @@
     "browser": true,
     "es2024": true
   },
+  "jsPlugins": [
+    {
+      "name": "react-compiler",
+      "specifier": "eslint-plugin-react-hooks"
+    }
+  ],
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "import/no-unassigned-import": "off"
+    "import/no-unassigned-import": "off",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-array-constructor": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "eslint/no-var": "error",
+    "eslint/prefer-const": "error",
+    "eslint/prefer-rest-params": "error",
+    "eslint/prefer-spread": "error",
+    "import/no-anonymous-default-export": "error",
+    "react/display-name": "error",
+    "react/no-unescaped-entities": "error",
+    "react-compiler/rules-of-hooks": "error",
+    "react-compiler/exhaustive-deps": "warn",
+    "react-compiler/config": "error",
+    "react-compiler/error-boundaries": "error",
+    "react-compiler/gating": "error",
+    "react-compiler/globals": "error",
+    "react-compiler/immutability": "error",
+    "react-compiler/incompatible-library": "error",
+    "react-compiler/preserve-manual-memoization": "error",
+    "react-compiler/purity": "error",
+    "react-compiler/refs": "error",
+    "react-compiler/set-state-in-effect": "error",
+    "react-compiler/set-state-in-render": "error",
+    "react-compiler/static-components": "error",
+    "react-compiler/unsupported-syntax": "error",
+    "react-compiler/use-memo": "error"
   },
   "ignorePatterns": [".next/**", "out/**", "build/**", "next-env.d.ts"]
 }
