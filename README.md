@@ -7,6 +7,29 @@ text. Others show off different methods of rendering and delivering websites.
 
 ## Quick Start
 
+### In Docker (no host Node.js required)
+
+```bash
+docker compose up dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Source edits on the host
+are picked up live.
+
+Run one-off commands in the container:
+
+```bash
+docker compose run --rm dev pnpm validate
+docker compose run --rm dev sh
+```
+
+VS Code users can instead run **Dev Containers: Reopen in Container**, which
+uses the same image.
+
+### On the host
+
+Requires Node.js 24 (see `.nvmrc`) and pnpm 10.
+
 ```bash
 pnpm install
 pnpm dev
@@ -39,6 +62,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | Rendering    | Next.js Server | [ADR-0010](docs/adr/0010-use-the-nextjs-production-server.md)    |
 | CI           | GitHub Actions | [ADR-0007](docs/adr/0007-ci-pipeline-with-github-actions.md)     |
 | Dep Security | Dependabot     | [ADR-0008](docs/adr/0008-dependency-security-with-dependabot.md) |
+| Linting      | oxlint         | [ADR-0012](docs/adr/0012-upgrade-to-typescript-7.md)             |
+| Local Dev    | Docker         | [ADR-0013](docs/adr/0013-docker-based-local-development.md)      |
 
 ## Architecture Decisions
 
