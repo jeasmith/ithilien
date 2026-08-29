@@ -6,7 +6,7 @@ Thanks for your interest in contributing to Ithilien.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 20 or later
+- [Node.js](https://nodejs.org/) 24 LTS (see `.nvmrc`)
 - [pnpm](https://pnpm.io/) 10 or later
 
 ### Setup
@@ -28,12 +28,13 @@ pnpm dev
 | Command              | Description                                |
 | -------------------- | ------------------------------------------ |
 | `pnpm dev`           | Start the development server (Turbopack)   |
-| `pnpm build`         | Build the production static export         |
-| `pnpm lint`          | Run ESLint                                 |
-| `pnpm lint:fix`      | Run ESLint with auto-fix                   |
+| `pnpm build`         | Build the production application           |
+| `pnpm lint`          | Run Oxlint                                 |
+| `pnpm lint:fix`      | Run Oxlint with auto-fix                   |
 | `pnpm format`        | Format code with Prettier                  |
 | `pnpm format:check`  | Check formatting without writing           |
 | `pnpm typecheck`     | Run TypeScript type checking               |
+| `pnpm --silent lsp`  | Start the TypeScript LSP server over stdio |
 | `pnpm test`          | Run tests with Vitest                      |
 | `pnpm test:watch`    | Run tests in watch mode                    |
 | `pnpm test:coverage` | Run tests with coverage report             |
@@ -58,6 +59,6 @@ See `docs/adr/0000-template.md` for the format.
 ## Code Style
 
 - TypeScript strict mode is enabled.
-- ESLint and Prettier are configured — run `pnpm format` before committing.
+- Oxlint and Prettier are configured — run `pnpm format` before committing.
 - Prefer named exports over default exports for components (except pages).
 - Write tests for new functionality.

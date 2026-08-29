@@ -1,0 +1,39 @@
+# Local development stack.
+#
+#   docker compose up dev                      — start the dev server on :3000
+#   docker compose run --rm dev pnpm validate  — run the full check suite
+#   docker compose run --rm dev sh             — shell into the container
+#
+# @see docs/adr/0013-docker-based-local-development.md
+
+services:
+  dev:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Source is bind-mounted so edits on the host are picked up immediately.
+      - .:/app
+      # These paths are masked with named volumes so the container keeps its
+      # own copies. node_modules must not be shared with the host: oxlint and
+      # Next.js resolve platform-native binaries, so a macOS install would be
+      # the wrong architecture inside this Linux container.
+      - node_modules:/app/node_modules
+      # .next is masked purely for performance — build output churns heavily
+      # and does not need to round-trip through a bind mount.
+      - next_cache:/app/.next
+    environment:
+      # Turbopack's watcher does not reliably receive inotify events through
+      # bind mounts on macOS and Windows, so fall back to polling.
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    # Keeps stdin open so `docker compose run --rm dev sh` is usable.
+    stdin_open: true
+    tty: true
+
+volumes:
+  node_modules:
+  next_cache:

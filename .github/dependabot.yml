@@ -53,14 +53,19 @@ updates:
           - "major"
           - "minor"
           - "patch"
+      # Keep the compiler, its LSP wrapper, Oxlint and the React rule bridge in
+      # one reviewable toolchain update.
       linting:
         patterns:
+          - "oxlint"
+          - "oxlint-*"
           - "eslint"
           - "@eslint/*"
           - "eslint-plugin-*"
           - "eslint-config-*"
           - "typescript-eslint"
           - "typescript"
+          - "typescript-language-server"
           - "prettier"
           - "prettier-plugin-*"
         update-types:
