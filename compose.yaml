@@ -18,8 +18,8 @@ services:
       - .:/app
       # These paths are masked with named volumes so the container keeps its
       # own copies. node_modules must not be shared with the host: oxlint and
-      # oxlint-tsgolint resolve platform-native binaries, so a macOS install
-      # would be the wrong architecture inside this Linux container.
+      # Next.js resolve platform-native binaries, so a macOS install would be
+      # the wrong architecture inside this Linux container.
       - node_modules:/app/node_modules
       # .next is masked purely for performance — build output churns heavily
       # and does not need to round-trip through a bind mount.

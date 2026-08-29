@@ -20,8 +20,8 @@ Two problems followed from this:
   nothing enforced that they matched.
 
 "Latest Node.js" is ambiguous. At the time of writing the newest release is
-**26.5.0** (Current, 2026-07-08) and the newest LTS is **24.18.0** ("Krypton",
-2026-06-23). Vercel, our deployment target, offers **24.x (default), 22.x and
+**26.8.1** (Current) and the newest LTS is **24.20.0** ("Krypton", both current
+as of 2026-08-29). Vercel, our deployment target, offers **24.x, 22.x and
 20.x** only. Node 26 is therefore not deployable: choosing it would guarantee
 that local development ran a different major than production, which is the
 precise failure this ADR exists to prevent.
@@ -58,12 +58,12 @@ it.
 - `.devcontainer/devcontainer.json` reuses the same compose service, so the VS
   Code integration cannot drift from the command-line one.
 
-Masking `node_modules` is the load-bearing detail. Oxlint and `oxlint-tsgolint`
-resolve platform-native binaries — `@oxlint/binding-darwin-arm64` on a Mac,
-`@oxlint/binding-linux-arm64-gnu` in the container. Sharing one `node_modules`
-between host and container would put the wrong architecture on the path. The
-lockfile records every platform's bindings, so `pnpm install --frozen-lockfile`
-resolves the correct set inside the image.
+Masking `node_modules` is the load-bearing detail. Oxlint and Next.js resolve
+platform-native binaries — for example, `@oxlint/binding-darwin-arm64` on a Mac
+and `@oxlint/binding-linux-arm64-gnu` in the container. Sharing one
+`node_modules` between host and container would put the wrong architecture on
+the path. The lockfile records every platform's bindings, so
+`pnpm install --frozen-lockfile` resolves the correct set inside the image.
 
 ## Consequences
 
@@ -99,4 +99,4 @@ resolves the correct set inside the image.
 - [Vercel — Supported Node.js Versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)
 - [Node.js Releases](https://nodejs.org/en/about/previous-releases)
 - [Development Containers](https://containers.dev/)
-- [ADR-0012: Upgrade to TypeScript 7](0012-upgrade-to-typescript-7.md)
+- [ADR-0012: Use TypeScript 6 with Oxlint](0012-use-typescript-6-with-oxlint.md)

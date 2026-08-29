@@ -23,11 +23,11 @@ WORKDIR /app
 
 # Install dependencies as their own layer so they are only reinstalled when the
 # manifest or lockfile changes, not on every source edit.
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Source is bind-mounted at runtime by compose. node_modules is deliberately
-# kept in the image (see compose.yaml) — oxlint and its tsgolint sidecar ship
+# kept in the image (see compose.yaml) — oxlint and Next.js ship
 # platform-native binaries, so a macOS host install cannot be reused here.
 COPY . .
 
