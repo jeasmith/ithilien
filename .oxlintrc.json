@@ -61,5 +61,12 @@
     "react-compiler/unsupported-syntax": "error",
     "react-compiler/use-memo": "error"
   },
-  "ignorePatterns": [".next/**", "out/**", "build/**", "next-env.d.ts"]
+  "ignorePatterns": [
+    "**/.next/**",
+    "**/.turbo/**",
+    "**/out/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/next-env.d.ts"
+  ]
 }

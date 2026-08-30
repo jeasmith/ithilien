@@ -21,5 +21,7 @@
       }
     }
   },
-  "forwardPorts": [3000]
+  // 3000 Ithilien, 3001 Radar, 3024 the microfrontends proxy. Open 3024 — it
+  // serves both apps on one origin, which is how production behaves.
+  "forwardPorts": [3000, 3001, 3024]
 }

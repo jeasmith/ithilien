@@ -19,16 +19,27 @@ cd ithilien
 # Install dependencies
 pnpm install
 
-# Start the development server
+# Start both applications and the microfrontends proxy
 pnpm dev
 ```
+
+Then open [http://localhost:3024](http://localhost:3024) — the microfrontends
+proxy, which serves both applications on one origin as production does. See the
+[README](README.md#why-port-3024) for the other ports and for how to run just
+one application.
+
+### Repository Layout
+
+This is a Turborepo monorepo. Applications live in `apps/`, shared code in
+`packages/`. Root scripts run across every project; add `--filter=<name>` to
+narrow them, for example `pnpm test --filter=radar`.
 
 ### Available Scripts
 
 | Command              | Description                                |
 | -------------------- | ------------------------------------------ |
-| `pnpm dev`           | Start the development server (Turbopack)   |
-| `pnpm build`         | Build the production application           |
+| `pnpm dev`           | Start both apps and the proxy              |
+| `pnpm build`         | Build every application                    |
 | `pnpm lint`          | Run Oxlint                                 |
 | `pnpm lint:fix`      | Run Oxlint with auto-fix                   |
 | `pnpm format`        | Format code with Prettier                  |
@@ -62,3 +73,7 @@ See `docs/adr/0000-template.md` for the format.
 - Oxlint and Prettier are configured — run `pnpm format` before committing.
 - Prefer named exports over default exports for components (except pages).
 - Write tests for new functionality.
+- Shared components belong in `packages/ui` and must not use the `@/*` alias —
+  Next.js resolves it against the consuming application. Use `@repo/ui/...`.
+- Cross-application links use `Link` from `@vercel/microfrontends/next/client`,
+  not `next/link`, so they resolve to the right deployment.

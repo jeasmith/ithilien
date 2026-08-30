@@ -1,10 +1,15 @@
 # Local development stack.
 #
-#   docker compose up dev                      — start the dev server on :3000
+#   docker compose up dev                      — start both apps and the proxy
 #   docker compose run --rm dev pnpm validate  — run the full check suite
 #   docker compose run --rm dev sh             — shell into the container
 #
+# Open http://localhost:3024 — the microfrontends proxy, which serves Ithilien
+# at / and Radar at /radar. The individual app ports are exposed too, but a
+# child app visited directly redirects back to the proxy.
+#
 # @see docs/adr/0013-docker-based-local-development.md
+# @see docs/adr/0016-vercel-microfrontends.md
 
 services:
   dev:
@@ -12,18 +17,29 @@ services:
       context: .
       target: dev
     ports:
-      - "3000:3000"
+      # Ports are pinned in apps/ithilien/microfrontends.json so that these
+      # mappings stay stable; without that the proxy assigns them dynamically.
+      - "3000:3000" # Ithilien
+      - "3001:3001" # Radar
+      - "3024:3024" # Microfrontends proxy
     volumes:
       # Source is bind-mounted so edits on the host are picked up immediately.
       - .:/app
       # These paths are masked with named volumes so the container keeps its
       # own copies. node_modules must not be shared with the host: oxlint and
       # Next.js resolve platform-native binaries, so a macOS install would be
-      # the wrong architecture inside this Linux container.
+      # the wrong architecture inside this Linux container. pnpm creates a
+      # node_modules per workspace project, so each one needs its own mask.
       - node_modules:/app/node_modules
-      # .next is masked purely for performance — build output churns heavily
-      # and does not need to round-trip through a bind mount.
-      - next_cache:/app/.next
+      - ithilien_node_modules:/app/apps/ithilien/node_modules
+      - radar_node_modules:/app/apps/radar/node_modules
+      - ui_node_modules:/app/packages/ui/node_modules
+      - tsconfig_node_modules:/app/packages/typescript-config/node_modules
+      # Build output is masked purely for performance — it churns heavily and
+      # does not need to round-trip through a bind mount.
+      - ithilien_next:/app/apps/ithilien/.next
+      - radar_next:/app/apps/radar/.next
+      - turbo_cache:/app/.turbo
     environment:
       # Turbopack's watcher does not reliably receive inotify events through
       # bind mounts on macOS and Windows, so fall back to polling.
@@ -36,4 +52,10 @@ services:
 
 volumes:
   node_modules:
-  next_cache:
+  ithilien_node_modules:
+  radar_node_modules:
+  ui_node_modules:
+  tsconfig_node_modules:
+  ithilien_next:
+  radar_next:
+  turbo_cache:

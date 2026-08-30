@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Consuming apps import this file from their own `globals.css`, so Tailwind's
+   automatic content detection starts from the app and never reaches this
+   package. These paths add the shared components back to the scan. */
+@source "../components";
+@source "../lib";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
