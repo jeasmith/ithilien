@@ -13,7 +13,7 @@ ported. Nothing below should be read as a specification of what to build.
 
 ## What runs today
 
-A Claude cloud scheduled task, *"Architecture Digest — weekday morning"*, fires
+A Claude cloud scheduled task, _"Architecture Digest — weekday morning"_, fires
 at 07:00 on weekdays into a **fresh session with no memory of previous runs**.
 Everything it needs is attached to the project. Each run:
 
@@ -42,28 +42,28 @@ A representative run: **66 candidates in, 13 kept**, across five sections.
 Twenty feeds plus one scraped page. Category is assigned **statically per
 source** in the fetcher, not inferred per item.
 
-| Source | Category | Mechanism |
-| --- | --- | --- |
-| Simon Willison | AI & Agents | Atom |
-| The Pragmatic Engineer | Engineering Practice | RSS |
-| Martin Fowler | Architecture & Design | Atom |
-| Dan Luu | Engineering Practice | Atom |
-| arXiv cs.SE | Research | `export.arxiv.org` API |
-| Tim Deschryver | Frontend & Platform | RSS |
-| Total TypeScript | Frontend & Platform | RSS |
-| AI Hero | AI & Agents | RSS |
-| OpenAI News | Industry | RSS |
-| Sean Goedecke | Engineering Practice | RSS |
-| Drew Breunig | AI & Agents | Atom |
-| Elad Gil | Industry | RSS |
-| Frontend at Scale | Frontend & Platform | RSS |
-| This Week In React | Frontend & Platform | RSS |
-| CodeRabbit | Vendor | RSS |
-| Farnam Street | Thinking & Craft | RSS |
-| Boris Tane | Engineering Practice | RSS |
-| AI Village | AI & Agents | RSS |
-| Anthropic News | Industry | **HTML scrape** |
-| Kill The Newsletter bridge | Newsletters | Atom (**redacted**) |
+| Source                     | Category              | Mechanism              |
+| -------------------------- | --------------------- | ---------------------- |
+| Simon Willison             | AI & Agents           | Atom                   |
+| The Pragmatic Engineer     | Engineering Practice  | RSS                    |
+| Martin Fowler              | Architecture & Design | Atom                   |
+| Dan Luu                    | Engineering Practice  | Atom                   |
+| arXiv cs.SE                | Research              | `export.arxiv.org` API |
+| Tim Deschryver             | Frontend & Platform   | RSS                    |
+| Total TypeScript           | Frontend & Platform   | RSS                    |
+| AI Hero                    | AI & Agents           | RSS                    |
+| OpenAI News                | Industry              | RSS                    |
+| Sean Goedecke              | Engineering Practice  | RSS                    |
+| Drew Breunig               | AI & Agents           | Atom                   |
+| Elad Gil                   | Industry              | RSS                    |
+| Frontend at Scale          | Frontend & Platform   | RSS                    |
+| This Week In React         | Frontend & Platform   | RSS                    |
+| CodeRabbit                 | Vendor                | RSS                    |
+| Farnam Street              | Thinking & Craft      | RSS                    |
+| Boris Tane                 | Engineering Practice  | RSS                    |
+| AI Village                 | AI & Agents           | RSS                    |
+| Anthropic News             | Industry              | **HTML scrape**        |
+| Kill The Newsletter bridge | Newsletters           | Atom (**redacted**)    |
 
 The full feed URLs are in the Claude project. They are public and can be brought
 across verbatim — with the single exception noted under
@@ -106,7 +106,7 @@ rebuild. Reproduced closely because the wording carries the intent.
 
 - **Curated, filtered and ranked — not comprehensive.**
 - **Lead with 2–3 items** that carry real signal, given fuller treatment. Prefer
-  pieces that *test* a widely-held belief with evidence over pieces that assert
+  pieces that _test_ a widely-held belief with evidence over pieces that assert
   one.
 - **Every item gets a "why this matters" line**, written for a technical
   architect at a consultancy working on AI-heavy and cloud-native systems. Say
@@ -119,7 +119,7 @@ rebuild. Reproduced closely because the wording carries the intent.
   surfaces visually separate from independent voices.
 - **Cut aggressively.** Customer case studies, executive appointments, pricing
   and seat announcements, policy letters, and minor point releases do not make
-  it. Package releases appear only if the *how* is interesting.
+  it. Package releases appear only if the _how_ is interesting.
 - **The `Newsletters` category is exempt from cutting** — every item that comes
   through the bridge goes in. These are sources Jamie deliberately subscribed to
   individually, so each issue is already his editorial choice.
@@ -152,7 +152,7 @@ the table at the foot of every issue, with an OK/quiet/error status per row.
 
 ### Deduplication
 
-An ID is added to the seen ledger once it has been *fetched in window* — not
+An ID is added to the seen ledger once it has been _fetched in window_ — not
 once it has been published. Items cut by the editorial bar are therefore
 suppressed forever on the strength of a single glance. The ledger is capped at
 the most recent 4,000 IDs.
