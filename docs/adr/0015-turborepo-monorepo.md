@@ -39,7 +39,7 @@ every change.
 Use a pnpm workspace driven by Turborepo, with applications in `apps/` and
 shared code in `packages/`:
 
-```
+```text
 apps/
   ithilien/   the default application, owns microfrontends.json
   radar/      the architectural digest, served at /radar

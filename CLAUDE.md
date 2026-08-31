@@ -23,12 +23,13 @@ served on a single origin as a Vercel microfrontends group.
   Dockerfile. Vercel offers 24.x, 22.x and 20.x only, so 24 is the newest
   version that keeps local, CI and production on the same major.
 - **Local dev**: Docker (`compose.yaml`) so the host needs no Node.js
-- **Code navigation**: `typescript-language-server` over stdio (`pnpm lsp`)
+- **Code navigation**: `typescript-language-server` over stdio
+  (`pnpm --silent lsp`)
 - **Hosting**: Vercel
 
 ## Project Structure
 
-```
+```text
 apps/
   ithilien/   Serves /. The DEFAULT app — owns microfrontends.json.
   radar/      Serves /radar. An architectural digest.
@@ -43,7 +44,7 @@ docs/
 
 Each app follows the same internal shape:
 
-```
+```text
 apps/<app>/
   src/app/          App Router pages and layouts
   microfrontends.json   (ithilien only — the routing config)
@@ -129,8 +130,9 @@ These are the constraints that are easy to get wrong:
 ## Working with This Codebase
 
 - Run `pnpm validate` before committing to catch issues early.
-- Adding an application means editing `pnpm-workspace.yaml` (already globbed),
-  `apps/ithilien/microfrontends.json`, the `Dockerfile` manifest COPY lines, and
-  `compose.yaml` volume masks — plus creating the Vercel project.
+- Adding an application means editing `apps/ithilien/microfrontends.json`, the
+  `Dockerfile` manifest COPY lines, and `compose.yaml` volume masks — plus
+  creating the Vercel project. `pnpm-workspace.yaml` already globs `apps/*`, so
+  it only changes if the globs themselves need to.
 - When making a technology choice: create a new ADR.
 - The `@/*` path alias maps to an app's own `./src/*`. Shared code is `@repo/ui`.

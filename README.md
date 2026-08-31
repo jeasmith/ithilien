@@ -89,10 +89,10 @@ narrow them, for example `pnpm build --filter=radar`.
 | `pnpm dev:ithilien` | Start Ithilien and the proxy only               |
 | `pnpm dev:radar`    | Start Radar and the proxy only                  |
 | `pnpm build`        | Build every application                         |
-| `pnpm start`        | Start the Next.js production servers            |
+| `pnpm start`        | Production servers on 3000 and 3001, no proxy   |
 | `pnpm lint`         | Run Oxlint                                      |
 | `pnpm typecheck`    | Run TypeScript 6 type checking                  |
-| `pnpm lsp`          | Start the TypeScript language server over stdio |
+| `pnpm --silent lsp` | Start the TypeScript language server over stdio |
 | `pnpm format`       | Format code with Prettier                       |
 | `pnpm test`         | Run tests                                       |
 | `pnpm validate`     | Run all checks                                  |
