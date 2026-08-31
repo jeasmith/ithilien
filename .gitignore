@@ -41,6 +41,13 @@ pnpm-debug.log*
 # vercel
 .vercel
 
+# claude code
+# Agent worktrees are full repo checkouts nested inside the working tree; they
+# must never be committed. Project-level config under .claude/ (settings.json,
+# skills, agents) is deliberately NOT ignored so it can be shared.
+.claude/worktrees/
+.claude/settings.local.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
