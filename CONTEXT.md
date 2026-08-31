@@ -48,3 +48,33 @@ The line written against Jamie's interests explaining what an article changes
 about a decision, a design, or a client conversation — as distinct from the
 summary, which says what the article contains. Both are original writing; neither
 is the source's own text.
+
+### Source
+
+Somewhere articles are surfaced from. A source has a name, a category and a
+fetch mechanism — a feed, a scraped page, or an API query. The mechanism is an
+implementation of a source, not a different kind of thing.
+
+Three sources are email-only and reach Radar through a forwarding bridge. The
+bridge is not itself a source; it is how those sources are read.
+
+### Article
+
+The thing on the web. Identified by where it lives, not by who mentioned it, so
+the same piece surfaced by two sources is one article.
+
+### Sighting
+
+One source surfacing one article, on one day, with that source's own words for
+it. Many sightings, one article.
+
+A sighting is not always a feed entry. A roundup — This Week In React, Bytes,
+Dear Architects — is an article whose substance is its links, and each of those
+links is a sighting of a further article. Several independent sources sighting
+the same article is itself a signal about that article.
+
+## Terms deliberately not yet defined
+
+Issue, Section, Category, Tag, Coverage, and the persona the "why this matters"
+line is written against. All are live questions on
+[#84](https://github.com/jeasmith/ithilien/issues/84).
