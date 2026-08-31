@@ -1,0 +1,5 @@
+@import "@repo/ui/styles.css";
+
+/* Tailwind's automatic source detection starts from this file, so it only sees
+   this app. The shared package adds its own sources; this covers ours. */
+@source "../";

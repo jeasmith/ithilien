@@ -21,9 +21,15 @@ RUN corepack enable
 
 WORKDIR /app
 
-# Install dependencies as their own layer so they are only reinstalled when the
-# manifest or lockfile changes, not on every source edit.
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Install dependencies as their own layer so they are only reinstalled when a
+# manifest or the lockfile changes, not on every source edit. pnpm resolves the
+# whole workspace up front, so every project's manifest has to be present —
+# copying only the root package.json would install nothing for the apps.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/ithilien/package.json ./apps/ithilien/
+COPY apps/radar/package.json ./apps/radar/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
 RUN pnpm install --frozen-lockfile
 
 # Source is bind-mounted at runtime by compose. node_modules is deliberately
@@ -31,7 +37,10 @@ RUN pnpm install --frozen-lockfile
 # platform-native binaries, so a macOS host install cannot be reused here.
 COPY . .
 
-EXPOSE 3000
+# 3000 Ithilien, 3001 Radar, 3024 the microfrontends proxy. The proxy is the
+# one to open: it stitches both apps onto a single origin.
+EXPOSE 3000 3001 3024
 
-# Bind to all interfaces so the dev server is reachable from the host.
-CMD ["pnpm", "dev", "--hostname", "0.0.0.0"]
+# `next dev` binds to 0.0.0.0 by default, so no --hostname flag is needed for
+# the dev servers to be reachable from the host.
+CMD ["pnpm", "dev"]

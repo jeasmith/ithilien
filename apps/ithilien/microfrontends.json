@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/microfrontends.json",
+  "applications": {
+    "ithilien": {
+      "development": {
+        "fallback": "www.ithilien.dev",
+        "local": 3000
+      }
+    },
+    "radar": {
+      "routing": [
+        {
+          "group": "radar",
+          "paths": ["/radar", "/radar/:path*"]
+        }
+      ],
+      "development": {
+        "local": 3001
+      }
+    }
+  },
+  "options": {
+    "localProxyPort": 3024
+  }
+}

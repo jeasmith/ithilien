@@ -1,0 +1,31 @@
+import react from "@vitejs/plugin-react";
+import { resolve } from "path";
+import { defineConfig } from "vitest/config";
+
+/** Vitest configuration — jsdom environment, React plugin, and path aliases. */
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "./src"),
+    },
+  },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./vitest.setup.ts"],
+    include: ["src/**/*.test.{ts,tsx}"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov", "html"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/**/*.test.{ts,tsx}",
+        "src/**/*.d.ts",
+        "src/**/types.ts",
+        "src/app/layout.tsx",
+        // A one-line redirect for direct visits to the Radar deployment.
+        "src/app/page.tsx",
+      ],
+    },
+  },
+});
