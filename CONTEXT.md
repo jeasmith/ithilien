@@ -90,7 +90,7 @@ and neither is enrichment.
 ### Category
 
 What an article is about. One per article, assigned when the article is judged —
-by which point the article has been read, so it is better placed than the
+by which point the article has been considered, so it is better placed than the
 source-level default. A source also carries a category, but that is a fallback
 for articles not yet judged, and the grouping for coverage.
 

@@ -39,31 +39,38 @@ A representative run: **66 candidates in, 13 kept**, across five sections.
 
 ## Sources
 
-Twenty feeds plus one scraped page. Category is assigned **statically per
-source** in the fetcher, not inferred per item.
+Twenty-two sources: seventeen direct feeds, one API query, one scraped page, and
+three email-only sources that arrive through a forwarding bridge. Category is
+assigned **statically per source** in the fetcher, not inferred per item.
 
-| Source                     | Category              | Mechanism              |
-| -------------------------- | --------------------- | ---------------------- |
-| Simon Willison             | AI & Agents           | Atom                   |
-| The Pragmatic Engineer     | Engineering Practice  | RSS                    |
-| Martin Fowler              | Architecture & Design | Atom                   |
-| Dan Luu                    | Engineering Practice  | Atom                   |
-| arXiv cs.SE                | Research              | `export.arxiv.org` API |
-| Tim Deschryver             | Frontend & Platform   | RSS                    |
-| Total TypeScript           | Frontend & Platform   | RSS                    |
-| AI Hero                    | AI & Agents           | RSS                    |
-| OpenAI News                | Industry              | RSS                    |
-| Sean Goedecke              | Engineering Practice  | RSS                    |
-| Drew Breunig               | AI & Agents           | Atom                   |
-| Elad Gil                   | Industry              | RSS                    |
-| Frontend at Scale          | Frontend & Platform   | RSS                    |
-| This Week In React         | Frontend & Platform   | RSS                    |
-| CodeRabbit                 | Vendor                | RSS                    |
-| Farnam Street              | Thinking & Craft      | RSS                    |
-| Boris Tane                 | Engineering Practice  | RSS                    |
-| AI Village                 | AI & Agents           | RSS                    |
-| Anthropic News             | Industry              | **HTML scrape**        |
-| Kill The Newsletter bridge | Newsletters           | Atom (**redacted**)    |
+The bridge is transport, not a source — see `CONTEXT.md` § Source. The three
+sources behind it are listed individually so per-source attribution and quirks
+survive the rebuild.
+
+| Source                 | Category              | Mechanism                     |
+| ---------------------- | --------------------- | ----------------------------- |
+| Simon Willison         | AI & Agents           | Atom                          |
+| The Pragmatic Engineer | Engineering Practice  | RSS                           |
+| Martin Fowler          | Architecture & Design | Atom                          |
+| Dan Luu                | Engineering Practice  | Atom                          |
+| arXiv cs.SE            | Research              | `export.arxiv.org` API        |
+| Tim Deschryver         | Frontend & Platform   | RSS                           |
+| Total TypeScript       | Frontend & Platform   | RSS                           |
+| AI Hero                | AI & Agents           | RSS                           |
+| OpenAI News            | Industry              | RSS                           |
+| Sean Goedecke          | Engineering Practice  | RSS                           |
+| Drew Breunig           | AI & Agents           | Atom                          |
+| Elad Gil               | Industry              | RSS                           |
+| Frontend at Scale      | Frontend & Platform   | RSS                           |
+| This Week In React     | Frontend & Platform   | RSS                           |
+| CodeRabbit             | Vendor                | RSS                           |
+| Farnam Street          | Thinking & Craft      | RSS                           |
+| Boris Tane             | Engineering Practice  | RSS                           |
+| AI Village             | AI & Agents           | RSS                           |
+| Anthropic News         | Industry              | **HTML scrape**               |
+| Dear Architects        | Newsletters           | Email → bridge (**redacted**) |
+| Bytes / ui.dev         | Newsletters           | Email → bridge (**redacted**) |
+| Lars Faye              | Newsletters           | Email → bridge (**redacted**) |
 
 The full feed URLs are in the Claude project. They are public and can be brought
 across verbatim — with the single exception noted under

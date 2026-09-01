@@ -44,8 +44,11 @@ nextjs.org is serving today. The public URL is given for convenience.
 The routing decision happens inside Vercel's network before the cache check and does not
 proxy to a second deployment, so `/radar/*` gets the ordinary Vercel cache and compute
 behaviour of the Radar deployment. The constraints that actually bite are (a) the Hobby
-plan's **50K microfrontends-routed requests per month**, which is charged for every
-request regardless of how the page is rendered, (b) on-demand revalidation being scoped
+plan's **50K microfrontends-routed requests per month** — a documented included
+allowance; whether cached responses count toward it, and what happens once it is
+exhausted, is an **inference** from the documented request order rather than a
+published rule (see [§6](#6-interaction-with-vercelmicrofrontends) and the
+unverified table below), (b) on-demand revalidation being scoped
 to "the domain and deployment where you trigger it", and (c) `metadataBase` and sitemap
 URLs, which must be pointed at the shared origin by hand because
 `VERCEL_PROJECT_PRODUCTION_URL` resolves to Radar's own project domain.
@@ -65,6 +68,8 @@ Prerendering is now a consequence of enabling Cache Components:
 > you can opt into PPR using the `cacheComponents` configuration.
 >
 > — [Version 16 upgrade guide, "Partial Prerendering (PPR)"](https://nextjs.org/docs/app/guides/upgrading/version-16#partial-prerendering-ppr)
+
+The reference page for the flag says the same thing from the other direction:
 
 > Additionally, `cacheComponents` implements **Partial Prerendering (PPR)** as the default
 > behavior in the App Router. This means the `experimental.ppr` configuration flag and the
@@ -100,7 +105,7 @@ parts.
    and Next.js's own build output distinguishes it. Running `next build` on this repo's
    Radar app with the flag set prints two separate lines:
 
-   ```
+   ```text
    - Cache Components enabled
    - Experiments (use with caution):
      ✓ multiZoneDraftMode
@@ -312,9 +317,12 @@ One useful cost property: "When revalidation runs and the content hasn't changed
 previous version, no ISR write units are incurred. This applies to both time-based and
 on-demand revalidation."
 ([ISR Usage and Pricing](https://vercel.com/docs/incremental-static-regeneration/limits-and-pricing)).
-The same page warns that `new Date()` or `Math.random()` in the ISR output defeats this —
-relevant, because `apps/radar/src/app/radar/page.tsx` currently computes
-`new Date().getFullYear()` at module scope.
+The same page warns that `new Date()` or `Math.random()` in the ISR output defeats this.
+`apps/radar/src/app/radar/page.tsx` currently computes `new Date().getFullYear()` at
+module scope, which is the _mild_ form of the problem: module scope is evaluated once
+per module instantiation, not per render, so the value only changes at a year boundary
+or when the module is reinitialised. It will not make every regeneration differ. A
+per-render `new Date()` inside a component would.
 
 ---
 
@@ -475,7 +483,12 @@ couple of years.
   - Cache Components: the App Shell handles it; remember `generateStaticParams` must
     return **at least one** param or the build errors.
 - Old article pages are immutable in practice, so once generated they should get a long
-  `cacheLife`/`revalidate` and only ever be invalidated by tag if the article is edited.
+  cache lifetime — `export const revalidate` in the previous rendering model, or
+  `use cache` with an explicit `cacheLife` under Cache Components. The two are not
+  interchangeable: `cacheComponents` replaces the route-segment config. Note that a
+  finite lifetime still expires on its own, so tag invalidation on edit is the
+  _prompt_ path, not the only one; only `cacheLife('max')` approximates
+  invalidate-by-tag-only.
 
 ---
 
@@ -563,10 +576,16 @@ The general request pipeline puts routing before caching before compute:
 >
 > — [How requests flow through Vercel](https://vercel.com/docs/fundamentals/infrastructure)
 
-**So: ISR, PPR and dynamic rendering behind `/radar/*` behave exactly as they would if
-Radar were a standalone Vercel project on its own domain.** The routing layer picks the
-deployment; everything downstream — CDN cache, ISR cache, request collapsing, function
-invocation — is that deployment's ordinary behaviour.
+**So the documented request order implies that ISR, PPR and dynamic rendering behind
+`/radar/*` should behave as they would if Radar were a standalone Vercel project on its
+own domain**: the routing layer picks the deployment, and everything downstream — CDN
+cache, ISR cache, request collapsing, function invocation — is that deployment's
+ordinary behaviour.
+
+**This is a reading of the request-flow documentation, not a tested result.** Nothing
+cited here states PPR shell/hole behaviour or shared-origin on-demand revalidation for a
+microfrontends deployment. Treat it as the working hypothesis the probe in
+[#98](https://github.com/jeasmith/ithilien/issues/98) exists to confirm.
 
 ### There is nothing cache-related to configure
 
@@ -612,9 +631,10 @@ from the two quotes above but is **not stated anywhere**. Label it unverified.
    update — which is the finding that matters for wiring up GitHub Actions.
 5. Delete the branch.
 
-Until that runs, the safe rule for the build ticket is: **trigger revalidation against the
-shared production origin (`https://www.ithilien.dev/radar/...`), never against Radar's own
-project domain.**
+Until that runs, the safe _working assumption_ for the build ticket — an unverified
+operational hypothesis, not an established behaviour — is: **trigger revalidation against
+the shared production origin (`https://www.ithilien.dev/radar/...`), never against Radar's
+own project domain.**
 
 ### Gotchas when only Radar is dynamic and Ithilien stays static
 
@@ -698,9 +718,13 @@ root are unclaimed paths and therefore route to the default application. A sitem
 >
 > — [sitemaps.org protocol, Sitemap file location](https://www.sitemaps.org/protocol.html)
 
-That is fine — every Radar URL is under `/radar/` — but it means Ithilien must own a
-`robots.txt` (and ideally a sitemap index) that points crawlers at `/radar/sitemap.xml`, or
-the Radar sitemap has to be submitted to Search Console separately. That is a cross-app
+That is nearly fine — but note the boundary case: `/radar` itself is a Radar URL and does
+**not** begin with `/radar/`, so a strict reading of the protocol excludes the digest's own
+landing page from its own sitemap. Either omit `/radar` from the child sitemap and list it
+in Ithilien's root sitemap, or publish a sitemap index at the origin root that covers both.
+Either way Ithilien must own a `robots.txt` (and ideally that sitemap index) pointing
+crawlers at `/radar/sitemap.xml`, or the Radar sitemap has to be submitted to Search
+Console separately. That is a cross-app
 coordination point, and it is the one place in this research where the microfrontends split
 makes an SEO surface more awkward than a single app would be.
 

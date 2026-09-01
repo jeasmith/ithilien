@@ -644,12 +644,16 @@ agent), via `gh api repos/jeasmith/ithilien/actions/runs/33331679752/jobs`:
 
 | Stage                                                                                     | Duration     |
 | ----------------------------------------------------------------------------------------- | ------------ |
-| Event received → run created                                                              | 19:43:57     |
-| Run created → job started                                                                 | ~3 s         |
+| Run created → job created                                                                 | ~1 s         |
+| Job created → job started (runner pickup)                                                 | ~2 s         |
 | `Set up job` + `Checkout repository`                                                      | ~4 s         |
 | `Run Claude Code Review` (bun install + Claude Code install + plugin install + agent run) | **2 m 44 s** |
 | Post-steps + `Complete job`                                                               | <1 s         |
-| **Total wall clock**                                                                      | **2 m 54 s** |
+| **Total, run created → job completed**                                                    | **2 m 54 s** |
+
+The webhook event timestamp is not exposed by the API, so the event → run-created
+leg is not measurable here; the run's own `created_at` was `19:43:57Z` and the job
+completed at `19:46:51Z`.
 
 Across the last twelve runs of that workflow, total wall clock ranged from **17 s
 to 2 m 55 s**, the short ones being runs where Claude declined to review. So
@@ -751,8 +755,9 @@ GitHub's semantics are
 
 **Recommendation:** put both workflows in one shared group, e.g.
 `group: radar-agent`, with `queue: max` and without `cancel-in-progress`. That
-serialises agent runs against the subscription, preserves queued deep-dive
-requests, and never drops a user request on the floor. Note the existing
+serialises agent runs against the subscription and preserves queued deep-dive
+requests. It is bounded, not lossless: `queue: max` holds up to **100** pending
+runs in the group and cancels anything beyond that capacity. Note the existing
 `claude-code-review.yml` already uses `cancel-in-progress: true` — correct for
 per-PR reviews, wrong for this.
 
@@ -873,9 +878,12 @@ explicitly.
 name: Radar Digest
 on:
   schedule:
-    - cron:
-        "37 6 * * 1-5" # 07:37 BST. NOT :00 — GitHub names the top of the
-        # hour as peak load, where runs are delayed or dropped.
+    # 07:37 Europe/London year-round. Without `timezone` the expression is
+    # evaluated in UTC, which drifts an hour between BST and GMT. NOT :00 —
+    # GitHub names the top of the hour as peak load, where runs are delayed
+    # or dropped.
+    - cron: "37 7 * * 1-5"
+      timezone: "Europe/London"
   workflow_dispatch: # required for testing — schedule only runs on default branch
 
 concurrency:
@@ -905,10 +913,15 @@ jobs:
             --max-turns 25
             --max-budget-usd 2.00
             --allowedTools "Read,Bash(jq:*)"
-            --json-schema '{"type":"object", ...}'
+            --json-schema '{"type":"object","required":["verdicts"],"additionalProperties":false,"properties":{"verdicts":{"type":"array","items":{"type":"object","required":["articleId","verdict","reason","category"],"additionalProperties":false,"properties":{"articleId":{"type":"string"},"verdict":{"enum":["kept","cut"]},"reason":{"type":"string"},"category":{"type":"string"}}}}}}'
 
-      - name: Write the digest
-        run: echo '${{ steps.curate.outputs.structured_output }}' | jq . > digest.json
+      # Intermediate validation only. The runner's filesystem is discarded when
+      # the job ends, so this proves the output parses — it does not persist the
+      # digest. Persisting it is the store's job, in a later step.
+      - name: Validate the structured output
+        env:
+          STRUCTURED_OUTPUT: ${{ steps.curate.outputs.structured_output }}
+        run: printf '%s' "$STRUCTURED_OUTPUT" | jq . > "$RUNNER_TEMP/digest.json"
 ```
 
 Design notes behind each choice:
@@ -919,10 +932,17 @@ Design notes behind each choice:
 - **`--json-schema` + `structured_output`** puts a validated contract on the
   agent/deterministic seam. Validate URLs and dates yourself; `format` is not
   enforced.
-- **`--allowedTools` is the whole permission model** for a plain-text prompt:
-  "For a plain-text prompt, Claude has no shell or GitHub API access until you
-  grant the tools the prompt needs"
+- **`--allowedTools` bounds what the _model_ may call, not the whole write
+  boundary.** For a plain-text prompt, "Claude has no shell or GitHub API access
+  until you grant the tools the prompt needs"
   ([GitHub Actions § Run on a schedule](https://code.claude.com/docs/en/github-actions#run-on-a-schedule)).
+  But the action itself still performs its own file and GitHub operations, and
+  those are governed by the job's `permissions:` block, not by `--allowedTools`.
+  The effective boundary is `permissions:` **and** `--allowedTools` together, and
+  this job grants `contents: write` with credentials persisted by `checkout`.
+  **Exactly which built-in operations survive an empty `--allowedTools` is
+  unverified here** — settle it in
+  [#94](https://github.com/jeasmith/ithilien/issues/94) before granting write.
   Invoke a repo skill instead and its `allowed-tools` frontmatter grants apply.
 - **`--max-budget-usd` and `--max-turns`** are the only allowance guardrails
   available inside a run.
