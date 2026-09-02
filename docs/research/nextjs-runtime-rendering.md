@@ -631,10 +631,12 @@ from the two quotes above but is **not stated anywhere**. Label it unverified.
    update — which is the finding that matters for wiring up GitHub Actions.
 5. Delete the branch.
 
-Until that runs, the safe _working assumption_ for the build ticket — an unverified
-operational hypothesis, not an established behaviour — is: **trigger revalidation against
-the shared production origin (`https://www.ithilien.dev/radar/...`), never against Radar's
-own project domain.**
+**Settled by the probe on 2026-09-02 — see
+[#98's answer record](../radar/revalidation-probe.md).** Revalidation triggered against
+the shared production origin does reach the Radar deployment, and the shared origin
+serves regenerated content about three seconds later. Triggering against Radar's own
+project domain is not merely inadvisable, it is impossible: that domain is
+SSO-gated.
 
 ### Gotchas when only Radar is dynamic and Ithilien stays static
 
@@ -816,7 +818,7 @@ nothing about **runtime** behaviour behind Vercel's routing layer, which remains
 
 | Claim                                                                                                                                 | Status                                                                       | How to settle                                                                                                                |
 | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| On-demand revalidation triggered via the shared origin purges the caches serving `/radar/*`                                           | **Unverified** — follows from two documented facts, stated nowhere           | The 5-step probe in [§6](#does-revalidation-pass-through--partly-unverified)                                                 |
+| On-demand revalidation triggered via the shared origin purges the caches serving `/radar/*`                                           | **Verified** 2026-09-02 — regenerated content served ~3 s later              | Settled. See [#98's answer record](../radar/revalidation-probe.md)                                                           |
 | Cached responses still consume microfrontends routed requests                                                                         | **Inference** from the documented request order; counting rule not published | Deploy, generate known traffic to a cached `/radar` page, read the Vercel Delivery Network usage chart                       |
 | PPR/Cache Components behaves correctly at runtime behind microfrontends routing (shell served, holes streamed, RSC prefetches routed) | **Unverified** — builds fine, never deployed                                 | Preview deployment with one PPR route under `/radar/`; check `x-vercel-cache` on the shell and that the dynamic hole streams |
 | Provisioned Memory cost of a database-backed dynamic Radar                                                                            | **Not computable** from docs                                                 | Measure on a preview deployment under synthetic load                                                                         |
