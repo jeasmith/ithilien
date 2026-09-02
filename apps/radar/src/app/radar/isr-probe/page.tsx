@@ -19,6 +19,14 @@
 export const revalidate = 86400;
 
 /**
+ * The probe runs on the live site, so keep it out of the index. It is unlinked
+ * from everywhere, but an unlinked page is still a crawlable one.
+ */
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
+/**
  * `new Date()` is not a dynamic API, so this page still prerenders; the value is
  * captured whenever Next.js generates the page, which is exactly what we want to
  * watch.
