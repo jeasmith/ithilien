@@ -17,9 +17,9 @@ describe("microfrontends routing", () => {
           "/radar",
           "/radar/an-entry",
           "/radar/nested/an-entry",
-          // Route handlers are ordinary paths to the proxy, and the #98 probe
-          // depends on one being reachable through the shared origin.
-          "/radar/api/revalidate-probe",
+          // Route handlers are ordinary paths to the proxy. Verified against a
+          // real deployment by the #98 probe.
+          "/radar/api/an-endpoint",
         ],
       }),
     ).not.toThrow();
