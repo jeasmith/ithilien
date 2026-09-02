@@ -13,7 +13,14 @@ describe("microfrontends routing", () => {
   it("routes the Radar digest to the Radar application", () => {
     expect(() =>
       validateRouting(CONFIG, {
-        radar: ["/radar", "/radar/an-entry", "/radar/nested/an-entry"],
+        radar: [
+          "/radar",
+          "/radar/an-entry",
+          "/radar/nested/an-entry",
+          // Route handlers are ordinary paths to the proxy, and the #98 probe
+          // depends on one being reachable through the shared origin.
+          "/radar/api/revalidate-probe",
+        ],
       }),
     ).not.toThrow();
   });
