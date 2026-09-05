@@ -94,6 +94,13 @@ by which point the article has been considered, so it is better placed than the
 source-level default. A source also carries a category, but that is a fallback
 for articles not yet judged, and the grouping for coverage.
 
+### Article kind
+
+The article's primary mode of writing: **News** reports developments, **Opinion**
+argues a position, and **Analysis** explains or examines a subject, including
+technical explanations, research interpretation and tutorials. Kind describes
+the article's substance, independently of its category, publisher or section.
+
 ### Issue
 
 One day's digest. **A publication, not a view**: once out, its text is fixed. An

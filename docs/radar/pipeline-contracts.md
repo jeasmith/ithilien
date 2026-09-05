@@ -10,19 +10,19 @@ specification — the ADRs are assembled in
 
 ## The stage table
 
-| Stage                                        | Code or agent | Note                                                    |
-| -------------------------------------------- | ------------- | ------------------------------------------------------- |
-| Fetch and parse each source                  | code          |                                                         |
-| Apply the date window                        | code          |                                                         |
-| Resolve to Articles, record Sightings        | code          | five sightings of one article become **one** decision   |
-| Enrich                                       | code          | canonical title, description and date, from the article |
-| Suppress articles already judged             | code          | only genuinely new articles are ever shown to the agent |
-| Route `Newsletters` past triage              | code          | the editorial bar's one rule that needs no judgement    |
-| Assign Section from the publisher            | code          | see [Sections](#sections)                               |
-| **Triage** — verdict, reason, category       | **agent 1**   | title and description only, ~200 rows                   |
-| **Write** — summary, why-this-matters, Leads | **agent 2**   | full text, ~13 rows                                     |
-| Render the issue and the article pages       | code          |                                                         |
-| Coverage and the run record                  | code          |                                                         |
+| Stage                                              | Code or agent | Note                                                    |
+| -------------------------------------------------- | ------------- | ------------------------------------------------------- |
+| Fetch and parse each source                        | code          |                                                         |
+| Apply the date window                              | code          |                                                         |
+| Resolve to Articles, record Sightings              | code          | five sightings of one article become **one** decision   |
+| Enrich                                             | code          | canonical title, description and date, from the article |
+| Suppress articles already judged                   | code          | only genuinely new articles are ever shown to the agent |
+| Route `Newsletters` past triage                    | code          | the editorial bar's one rule that needs no judgement    |
+| Assign Section from the publisher                  | code          | see [Sections](#sections)                               |
+| **Triage** — verdict, reason, category             | **agent 1**   | title and description only, ~200 rows                   |
+| **Write** — summary, why-this-matters, kind, Leads | **agent 2**   | full text, ~13 rows                                     |
+| Render the issue and the article pages             | code          |                                                         |
+| Coverage and the run record                        | code          |                                                         |
 
 There is deliberately **no deterministic relevance score**. See
 [What was cut](#what-was-cut).
@@ -81,23 +81,34 @@ is why `CONTEXT.md` § Category says "considered" rather than "read".
 
 ## Contract 2 — write
 
-**Purpose:** produce the Briefs, and choose which of them lead.
+**Purpose:** produce the Briefs, assign Article kind, and choose which of them lead.
 
-**Receives:** `docs/radar/write.md`, plus the full text of each kept article.
+**Receives:** `docs/radar/write.md`, plus the full text of each write-eligible article:
+either kept by triage or routed past triage by the `Newsletters` exemption.
+Code includes exempt newsletters directly in this input set without recording an
+editorial Verdict. Here, "keeps" includes both groups; the exemption is eligibility
+for writing, not a judgement invented by code.
 This call is the only stage that sees every keep at once, so Lead selection
 belongs here — "is this good **relative to today's other keeps**" is not a
 question triage can answer.
 
-**Returns:** one row per kept article.
+**Returns:** one row per write-eligible article, including exempt newsletters.
 
 ```jsonc
 {
   "articleId": "…",
   "summary": "…",
   "whyThisMatters": "…",
+  "kind": "news" | "opinion" | "analysis",
   "isLead": false,
 }
 ```
+
+Article kind was added by [#90](https://github.com/jeasmith/ithilien/issues/90).
+The write stage assigns one primary kind from the full article's substance,
+including for newsletters that bypass triage. It is independent of category and
+section; the public labels are News / Opinion / Analysis. Unknown or missing
+kinds follow the existing per-row validation policy.
 
 ## Sections
 
@@ -116,9 +127,10 @@ Deriving from the publisher rather than from the sighting resolves the
 multi-sighting case for free: an arXiv paper linked by a newsletter is still
 `Research`, because the publisher did not change.
 
-Whether sections survive at all is
-[#90](https://github.com/jeasmith/ithilien/issues/90). This settles who assigns
-them if they do.
+[#90](https://github.com/jeasmith/ithilien/issues/90) retains all five sections,
+omitting empty ones. Placement remains fixed per issue. Article kind does not
+change section eligibility: for example, a Vendor article stays in Vendor whether
+its kind is News or Opinion. See [the route and content contract](./routes-and-content.md).
 
 ## The editorial bar
 
