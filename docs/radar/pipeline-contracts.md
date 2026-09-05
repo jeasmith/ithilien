@@ -81,7 +81,7 @@ is why `CONTEXT.md` § Category says "considered" rather than "read".
 
 ## Contract 2 — write
 
-**Purpose:** produce the Briefs, and choose which of them lead.
+**Purpose:** produce the Briefs, assign Article kind, and choose which of them lead.
 
 **Receives:** `docs/radar/write.md`, plus the full text of each kept article.
 This call is the only stage that sees every keep at once, so Lead selection
@@ -95,9 +95,16 @@ question triage can answer.
   "articleId": "…",
   "summary": "…",
   "whyThisMatters": "…",
+  "kind": "news" | "opinion" | "analysis",
   "isLead": false,
 }
 ```
+
+Article kind was added by [#90](https://github.com/jeasmith/ithilien/issues/90).
+The write stage assigns one primary kind from the full article's substance,
+including for newsletters that bypass triage. It is independent of category and
+section; the public labels are News / Opinion / Analysis. Unknown or missing
+kinds follow the existing per-row validation policy.
 
 ## Sections
 
@@ -116,9 +123,10 @@ Deriving from the publisher rather than from the sighting resolves the
 multi-sighting case for free: an arXiv paper linked by a newsletter is still
 `Research`, because the publisher did not change.
 
-Whether sections survive at all is
-[#90](https://github.com/jeasmith/ithilien/issues/90). This settles who assigns
-them if they do.
+[#90](https://github.com/jeasmith/ithilien/issues/90) retains all five sections,
+omitting empty ones. Placement remains fixed per issue. Article kind does not
+change section eligibility: for example, a Vendor article stays in Vendor whether
+its kind is News or Opinion. See [the route and content contract](./routes-and-content.md).
 
 ## The editorial bar
 
