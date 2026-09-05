@@ -119,7 +119,10 @@ the indexing comment on #90:
   both the root sitemap and `https://www.ithilien.dev/radar/sitemap.xml`.
 - Radar owns its sitemap, listing dated issues, published article pages, and
   its archive, article index and source-health page. Omit the duplicate latest
-  issue URL, private candidates, run diagnostics and search/filter variants.
+  issue URL, private candidates, run-specific coverage pages
+  (`/radar/sources/runs/<run-id>`), private run diagnostics and search/filter
+  variants. Run-specific coverage remains public and linked from issues even
+  though it is excluded from the sitemap.
 - Each app generates its own entries. The parent advertises the stable Radar
   sitemap URL; it does not copy a list of Radar articles. Publication and deep
   dive updates must refresh relevant Radar sitemap content as part of #91/#97.
