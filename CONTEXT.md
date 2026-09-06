@@ -87,12 +87,21 @@ what the article contains. **"Why this matters"** says what it changes about a
 decision, a design, or a client conversation. Neither is the source's own text,
 and neither is enrichment.
 
+A brief is written once and, in most cases, read once — on the day its issue
+publishes. It is not maintained. What matters about an article afterwards
+accrues beside it, as sightings, issue appearances and deep dives.
+
 ### Category
 
 What an article is about. One per article, assigned when the article is judged —
 by which point the article has been considered, so it is better placed than the
 source-level default. A source also carries a category, but that is a fallback
 for articles not yet judged, and the grouping for coverage.
+
+Newsletters are the one exception, as they are throughout: they bypass judgement,
+so they take their source's category. A newsletter is about what the newsletter
+is about, and the articles it carries are categorised individually in their own
+right.
 
 ### Article kind
 

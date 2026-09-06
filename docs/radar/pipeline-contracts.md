@@ -8,6 +8,16 @@ Vocabulary is `CONTEXT.md`. The pipeline being replaced is described in
 specification — the ADRs are assembled in
 [#96](https://github.com/jeasmith/ithilien/issues/96).
 
+> **Redrawn 2026-09-06.** The map stepped back to build the original problem and
+> no more. Two things in this record are **deferred from the first build**, not
+> reversed: roundup links stay sightings in the model but are not fed to triage as
+> candidates yet, so the pool is ~66 a day rather than ~200 and the triage input
+> falls by about two thirds. **Every ~200 figure below is the pre-redraw volume**,
+> kept because the contracts were sized for it and must still hold when the
+> deferral is lifted; the private backlog surface is GitHub —
+> promotion is a `workflow_dispatch` with a URL — so nothing here needs an
+> authenticated page. See the map's _Out of scope_ for the full list.
+
 ## The stage table
 
 | Stage                                              | Code or agent | Note                                                    |
@@ -17,7 +27,7 @@ specification — the ADRs are assembled in
 | Resolve to Articles, record Sightings              | code          | five sightings of one article become **one** decision   |
 | Enrich                                             | code          | canonical title, description and date, from the article |
 | Suppress articles already judged                   | code          | only genuinely new articles are ever shown to the agent |
-| Route `Newsletters` past triage                    | code          | the editorial bar's one rule that needs no judgement    |
+| Route `Newsletters` past triage                    | code          | needs no judgement; takes the source's category         |
 | Assign Section from the publisher                  | code          | see [Sections](#sections)                               |
 | **Triage** — verdict, reason, category             | **agent 1**   | title and description only, ~200 rows                   |
 | **Write** — summary, why-this-matters, kind, Leads | **agent 2**   | full text, ~13 rows                                     |
@@ -88,6 +98,14 @@ either kept by triage or routed past triage by the `Newsletters` exemption.
 Code includes exempt newsletters directly in this input set without recording an
 editorial Verdict. Here, "keeps" includes both groups; the exemption is eligibility
 for writing, not a judgement invented by code.
+
+Because an exempt newsletter never passes through triage, it never receives an
+agent-assigned category. Code assigns its **source's category** on the exemption
+path — a newsletter is about what the newsletter is about, and the articles it
+links are categorised individually as candidates in their own right. The write
+contract does not return a category: adding one only for this group would give
+the field two writers, and the agent would almost always echo the source's
+anyway. Settled by [#89](https://github.com/jeasmith/ithilien/issues/89).
 This call is the only stage that sees every keep at once, so Lead selection
 belongs here — "is this good **relative to today's other keeps**" is not a
 question triage can answer.
