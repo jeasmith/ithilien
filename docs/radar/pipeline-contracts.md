@@ -12,7 +12,9 @@ specification — the ADRs are assembled in
 > no more. Two things in this record are **deferred from the first build**, not
 > reversed: roundup links stay sightings in the model but are not fed to triage as
 > candidates yet, so the pool is ~66 a day rather than ~200 and the triage input
-> below falls by about two thirds; and the private backlog surface is GitHub —
+> falls by about two thirds. **Every ~200 figure below is the pre-redraw volume**,
+> kept because the contracts were sized for it and must still hold when the
+> deferral is lifted; the private backlog surface is GitHub —
 > promotion is a `workflow_dispatch` with a URL — so nothing here needs an
 > authenticated page. See the map's _Out of scope_ for the full list.
 

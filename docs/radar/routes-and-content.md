@@ -10,9 +10,10 @@ and ADRs to #96.
 > **Redrawn 2026-09-06.** The map stepped back to build the original problem and
 > no more. Two routes below are **deferred from the first build**, not reversed:
 > `/radar/sources/runs/<run-id>` waits, with coverage stored per run from day one
-> and `/radar/sources` showing current health; and the private backlog surface is
-> GitHub rather than a page, so nothing here needs a sign-in. The issue's coverage
-> line links to `/radar/sources` until the per-run page exists. See the map's
+> and `/radar/sources` showing current health. The private backlog surface is
+> GitHub rather than a page, so the Radar web app has no sign-in; GitHub's own
+> authentication still guards the `workflow_dispatch`. The issue's coverage line
+> links to `/radar/sources` until the per-run page exists. See the map's
 > _Out of scope_ for the full list.
 
 ## Route map

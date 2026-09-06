@@ -126,7 +126,11 @@ The editorial judgement passed on a candidate (`CONTEXT.md` § Verdict).
 | `decided_at` |                                                |
 
 A row here is what suppression reads: the triage set is articles with no verdict
-that did not arrive through the mail bridge. That is the only suppression in the
+that are not newsletters — no direct sighting from a `via_mail_bridge` source —
+and, in the first build, that have at least one direct sighting at all
+(`via_article_id IS NULL`), because roundup expansion is deferred and
+roundup-carried articles are recorded but not yet judged. Lifting the deferral is
+dropping that last clause. Absence of a verdict is the only suppression in the
 model, and it replaces the `seen` bit the old pipeline conflated four facts into.
 
 **Settled — one verdict per article, and promotion sits outside it.** A verdict
@@ -242,14 +246,18 @@ One day's digest — a publication, not a view (`CONTEXT.md` § Issue).
 | `id`              |                                                    |
 | `issue_date`      | **Unique.** This is what makes publishing one-shot |
 | `published_at`    |                                                    |
-| `state`           | `draft` \| `published`                             |
 | `coverage_run_id` | The run whose coverage this issue links to         |
 
-The unique `issue_date` plus a transaction is the whole idempotency story for
-publication: a re-run for a date that has already published does nothing because
-it cannot insert. A successful run that selected nothing still publishes a row —
-the "Nothing selected today" issue — while a failed run publishes none, so the
-presence of a row means a run succeeded.
+There is no `state` column and no draft. An `issue` row is inserted only inside
+the publication transaction, together with its entries and slug allocations, so a
+row exists if and only if that date published. The unique `issue_date` plus that
+transaction is the whole idempotency story: a re-run for a date that has already
+published does nothing because it cannot insert, and a run that fails before
+publication leaves nothing to clean up. A successful run that selected nothing
+still publishes a row — the "Nothing selected today" issue — while a failed run
+publishes none. An earlier draft of this sketch had a `draft` state; it was
+removed because a committed draft would reserve the date without a defined
+recovery path, and the model has no use for an issue that is not yet out.
 
 ### `issue_entry`
 
@@ -310,6 +318,15 @@ column level rather than sanitising on read is deliberate: the route contract
 forbids private feed URLs and raw errors in public output, and a column that is
 never selected by the public role cannot leak through a forgotten code path.
 
+`status_private` is **redacted at write time**, not raw: before storing an error,
+code replaces every occurrence of a known bearer capability — each
+`source.endpoint`, the inbox address, any token the fetch used — with a
+placeholder. "Private" means not shown on the site; it does not mean a safe place
+for secrets, because this column is in the monthly dump. The same rule applies to
+`run_anomaly.raw_row`, which holds an agent's output row and should never contain
+a capability in the first place, but is redacted on the same path for the same
+reason.
+
 ### `run_anomaly`
 
 Every dropped agent row, recorded against the run (pipeline-contracts § Failure).
@@ -345,11 +362,11 @@ once cannot drift between the page, the search endpoint and the sitemap.
 Three, because ADR-0017 separates migration credentials from application and
 pipeline ones:
 
-| Role             | Grants                                                                   |
-| ---------------- | ------------------------------------------------------------------------ |
-| `radar_public`   | `SELECT` on the public views only                                        |
-| `radar_pipeline` | `SELECT`/`INSERT`/`UPDATE` on the pipeline's tables. No `DELETE`, no DDL |
-| `radar_migrate`  | DDL, plus the DML a reviewed migration needs: its journal and backfills  |
+| Role             | Grants                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| `radar_public`   | `SELECT` on the public views only                                                                       |
+| `radar_pipeline` | `SELECT`/`INSERT`/`UPDATE` on the pipeline's tables and `USAGE` on their sequences. No `DELETE`, no DDL |
+| `radar_migrate`  | DDL, plus the DML a reviewed migration needs: its journal and backfills                                 |
 
 `radar_pipeline` reads as well as writes, because the pipeline's idempotency is
 read-before-write at every stage: ingest checks `article.url` and `sighting`
@@ -437,6 +454,16 @@ projection on every publication was considered and rejected for now: it would pu
 a git write inside the one-shot publication path, which the idempotency contract
 has so far kept free of external dependencies, to prove something the monthly
 dump proves well enough at this size.
+
+**What the dump must not carry.** Diagnostics are redacted at write time (see
+`coverage`), so the only bearer capability in the schema is `source.endpoint` —
+the feed URLs and the inbox address. A dump that includes it is a copy of those
+capabilities in a second place. Whether `source.endpoint` lives in the database at
+all, or stays in Actions secrets keyed by source name with the database holding
+only the name, is a question for the credential inventory in
+[#94](https://github.com/jeasmith/ithilien/issues/94); until it is answered, the
+dump excludes that column, which `pg_dump` cannot do directly, so the export
+dumps `source` through a view that omits it.
 
 **Deferred — the restore rehearsal.** The recovery requirement above is the test
 a rehearsal would run: restore the latest dump into a throwaway Postgres in
