@@ -34,8 +34,8 @@ Radar's web application accesses Neon **through Radar's own server code**.
 Jamie accepted this access boundary on 2026-09-06. Public pages and the private
 backlog read the same database through separate permissions. The public role can
 read only published writing and the sanitised coverage the routes expose. Private
-reads — candidates, cuts without published writing, run diagnostics and retained
-source text — are permitted to the owner alone; the server verifies the signed-in
+reads — candidates, cuts without published writing and run diagnostics — are
+permitted to the owner alone; the server verifies the signed-in
 user is the owner before issuing the query, and the query runs under a role the
 public path never holds. Browser clients receive authorized results, never
 database credentials. No separate API service is introduced for the library. The
@@ -47,19 +47,25 @@ query model fits Radar's relationships and publication transactions. Use explici
 SQL where search indexes or database permissions require it; adopting Drizzle
 does not remove the need to understand and review the SQL being executed.
 
-Retain **the exact extracted source text supplied to the brief and deep-dive
-writing stages**, privately and permanently, with its retrieval time. Jamie
-accepted this retention policy on 2026-09-06. Preserve the snapshot before the
-writing call and associate it with that attempt and any resulting writing, so a
-failed call does not lose its input and later retrievals do not overwrite the
-evidence for earlier writing. This retention covers exempt newsletters too.
+**Do not retain source text.** Record a **fingerprint** of the extracted text
+supplied to each brief and deep-dive writing attempt — a content hash, its length
+and its retrieval time — and nothing more. Jamie revised this on 2026-09-06,
+later the same day, from an earlier acceptance of permanent retention of the
+full text. The database exists to hold clear relations between pieces of
+information, and a source is adequately identified by its URL; if the original
+author takes an article down, Radar's own writing stands and the link is what
+remains. The fingerprint preserves what retention was actually for — proof of
+what a given attempt was shown, and the ability of a later re-fetch to detect
+that the source has changed — without holding third-party text permanently or
+making the library's size a function of article length. Text supplied to a
+writing call lives in the run's workspace for the duration of the run, which
+covers retries within it.
 
 Article metadata, sightings, verdicts and Radar's own writing remain permanent
-for all articles. Full source bodies fetched only for candidate enrichment are
-not part of the permanent archive. Promoting an older candidate may therefore
-require retrieving its source again, which can have changed or disappeared.
-Retained source text is private evidence, not content automatically exposed on
-public article pages or in public search.
+for all articles. Full source bodies fetched for enrichment or writing are not
+part of the archive. Promoting an older candidate or revisiting a source
+therefore retrieves it again, which can have changed or disappeared. Whether a
+deep dive alone warrants retaining its source is left to #93.
 
 Apply **reviewed, committed SQL migrations automatically as a gated release
 step in GitHub Actions**. Jamie accepted automated migrations on 2026-09-06.
@@ -80,7 +86,7 @@ An independent automatic Vercel deployment must not bypass it. This ADR records
 the required ordering; it does not change the current deployment workflow.
 
 This accepts the store, ownership, web access, data-access tooling, source-text
-retention and migration execution choices.
+fingerprinting and migration execution choices.
 [#89](https://github.com/jeasmith/ithilien/issues/89) still owns the schema sketch
 and the export and recovery procedures. No database, paid plan,
 credentials or dependencies are provisioned by this ADR.
@@ -122,8 +128,9 @@ The alternatives remain credible but were less compelling for this workload:
 
 - Rendering and cache revalidation remain #91; write credentials and trust remain
   #94; operational failure handling remains #97.
-- Storage sizing must use measured metadata, writing and retained source-text
-  bytes, including snapshots from failed writing attempts.
+- Storage sizing must use measured metadata and writing bytes. With source text
+  fingerprinted rather than retained, library size no longer depends on article
+  length.
 - An export capability must be paired with a tested restore procedure; choosing
   Postgres alone does not establish recovery readiness.
 

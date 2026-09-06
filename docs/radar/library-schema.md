@@ -181,39 +181,41 @@ Columns beyond `article_id`, `requested_at` and `write_attempt_id` wait on
 flow and whether an article can be deep-dived more than once. If it can, this
 table needs an ordering column and `CONTEXT.md` needs a word for the second one.
 
-### `source_snapshot`
-
-The exact extracted source text supplied to a writing stage, retained privately
-and permanently per ADR-0017.
-
-| Column             | Notes                                          |
-| ------------------ | ---------------------------------------------- |
-| `id`               |                                                |
-| `article_id`       |                                                |
-| `retrieved_at`     |                                                |
-| `text`             | **Private.** Evidence, not publishable content |
-| `write_attempt_id` | The attempt this text was supplied to          |
-
-Written before the writing call, so a failed call does not lose its input. Keyed
-to the attempt rather than the article, so a later retrieval does not overwrite
-the evidence for earlier writing. This is the table that grows without bound and
-therefore the one that decides the storage bill — the research report's 50 KB per
-article scenario is ~2.6 GB/year against Neon's 0.5 GB free allowance.
-
 ### `write_attempt`
 
-| Column       | Notes                              |
-| ------------ | ---------------------------------- |
-| `id`         |                                    |
-| `run_id`     |                                    |
-| `article_id` |                                    |
-| `stage`      | `brief` \| `deep_dive`             |
-| `started_at` |                                    |
-| `outcome`    | `written` \| `dropped` \| `failed` |
+| Column         | Notes                                                    |
+| -------------- | -------------------------------------------------------- |
+| `id`           |                                                          |
+| `run_id`       |                                                          |
+| `article_id`   |                                                          |
+| `stage`        | `brief` \| `deep_dive`                                   |
+| `started_at`   |                                                          |
+| `outcome`      | `written` \| `dropped` \| `failed`                       |
+| `source_hash`  | Content hash of the extracted text supplied to the agent |
+| `source_bytes` | Its length                                               |
+| `retrieved_at` | When it was fetched                                      |
 
-The seam that makes retention and anomaly recording work: snapshot, attempt and
-resulting writing form one chain, so a dropped row keeps the text that was sent
-and the reason it was dropped.
+The seam that makes anomaly recording work: attempt and resulting writing form
+one chain, so a dropped row keeps the reason it was dropped.
+
+**Settled — source text is fingerprinted, not retained.** ADR-0017 originally
+retained the exact extracted text supplied to every writing stage, permanently.
+That was revised with Jamie on 2026-09-06: the database exists to hold clear
+relations between pieces of information, and a source is adequately identified by
+its URL. If the original author takes an article down, so be it — Radar's own
+writing stands, and anyone who needs the source follows the link. The three
+fingerprint columns keep what the retention was actually for: proof of _what_ was
+supplied to a given attempt, and the ability for a later re-fetch to say "the
+source has changed since this was written". The text itself lives in the run's
+workspace for the duration of the run, which covers intra-run retries, and
+nowhere afterwards.
+
+This removes the one table that grew without bound. Everything remaining is
+~100 MB/year in the research report's scenario, which fits Neon's free allowance
+for years rather than months and collapses the export question below. Whether a
+deep dive alone warrants retaining its source — a handful a month, and the one
+place a reader might come back to check — is left to
+[#93](https://github.com/jeasmith/ithilien/issues/93).
 
 ## Publication
 
@@ -368,7 +370,7 @@ provider dump is not a tested migration plan. What the export must carry is
 settled by the model: stable article identities and their canonical metadata,
 sightings with their words, verdicts with their reasons, the immutable writing,
 issue membership with section and frozen kind label, allocated slugs, and the
-private run records — coverage, anomalies and retained source text.
+private run records — coverage, anomalies and attempt fingerprints.
 
 The recovery requirement is equally clear: restoring into an empty database must
 reproduce the public projection byte-for-byte and preserve every allocated slug,
@@ -378,8 +380,10 @@ acceptable; one that reallocates a slug is a broken link.
 **Open — where does the export land, how often, and what proves the restore
 works?** Neon's free tier gives a restore window of hours, not an archive, so
 this is a real gap rather than a belt-and-braces extra. The shape of the answer
-is a destination, a cadence and a rehearsal, and none of the three is implied by
-the store choice.
+is a destination, a cadence and a rehearsal. With source text no longer retained
+the whole library is small enough that a private repository is a credible
+destination and no new provider is implied; the cadence and rehearsal are still
+to be chosen.
 
 **Open — is the export a flat-file dump or the publication source of truth?**
 These pull in different directions. A periodic dump is simple and adds nothing to
