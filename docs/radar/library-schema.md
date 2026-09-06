@@ -37,6 +37,15 @@ One row per place articles are surfaced from (`CONTEXT.md` § Source).
 section and it grants the triage exemption. The bridge is not a source, so it is
 a property of these rows rather than a row of its own.
 
+The exemption applies to the newsletter **itself**, not to everything it links.
+Precisely: an article is a newsletter when it has a sighting from a
+`via_mail_bridge` source with `via_article_id IS NULL` — it arrived directly. Once
+roundup expansion is switched on, the articles a newsletter links will also carry
+sightings from that source, but with `via_article_id` set; they are ordinary
+candidates, go to triage, and take the section their own publisher gives them.
+Testing the source property alone would route every linked article past triage
+and into `Newsletters`.
+
 ### `article`
 
 The thing on the web, identified by where it lives (`CONTEXT.md` § Article).
@@ -145,12 +154,17 @@ The summary and "why this matters" that constitute a brief.
 | Column             | Notes                             |
 | ------------------ | --------------------------------- |
 | `id`               |                                   |
-| `article_id`       |                                   |
+| `article_id`       | **Unique.** One brief per article |
 | `summary`          |                                   |
 | `why_this_matters` |                                   |
 | `kind`             | `news` \| `opinion` \| `analysis` |
 | `written_at`       |                                   |
 | `write_attempt_id` | The attempt that produced it      |
+
+`article_id` unique is what makes the write stage's "skip articles that already
+have a brief" safe under retry: two overlapping runs can both observe no brief,
+but only one insert succeeds, and the loser records the conflict as an anomaly
+rather than leaving an article with two briefs for the issue to choose between.
 
 **Settled — a brief is immutable, in the database and everywhere else.** One row,
 referenced by the issue and the article page alike, never updated. The route
@@ -331,11 +345,22 @@ once cannot drift between the page, the search endpoint and the sitemap.
 Three, because ADR-0017 separates migration credentials from application and
 pipeline ones:
 
-| Role             | Grants                                                        |
-| ---------------- | ------------------------------------------------------------- |
-| `radar_public`   | `SELECT` on the public views only                             |
-| `radar_pipeline` | `INSERT`/`UPDATE` for ingest, verdicts, writing, runs. No DDL |
-| `radar_migrate`  | DDL only                                                      |
+| Role             | Grants                                                                   |
+| ---------------- | ------------------------------------------------------------------------ |
+| `radar_public`   | `SELECT` on the public views only                                        |
+| `radar_pipeline` | `SELECT`/`INSERT`/`UPDATE` on the pipeline's tables. No `DELETE`, no DDL |
+| `radar_migrate`  | DDL, plus the DML a reviewed migration needs: its journal and backfills  |
+
+`radar_pipeline` reads as well as writes, because the pipeline's idempotency is
+read-before-write at every stage: ingest checks `article.url` and `sighting`
+before inserting, triage selects the candidates with no `verdict`, write selects
+the keeps with no `brief`, and publication checks `issue.issue_date`. Those are
+private rows the public views exclude, so the pipeline needs `SELECT` on the
+tables themselves. It never deletes — a cut is a row, not a removal — and never
+changes the schema. `radar_migrate` is not DDL-only for the mirror-image reason:
+Drizzle records applied migrations in a journal table, and ADR-0017's
+expand-then-contract rule requires backfills inside reviewed migrations. Both are
+DML, run only from a migration, under a credential the pipeline never holds.
 
 `/radar` is public read, private write, and the write side is `radar_pipeline`
 running in GitHub Actions rather than anything reachable from a browser. The map
@@ -386,15 +411,26 @@ acceptable; one that reallocates a slug is a broken link.
 Settled with Jamie on 2026-09-06 as part of the redraw. With source text no
 longer retained, the whole library is tens of megabytes a year compressed, so
 the destination question that once implied a new object-storage provider
-collapses. A private repository was chosen over Vercel Blob for three reasons: a
+collapses. A private repository was chosen over Vercel Blob for two reasons: a
 backup should not share a usage cap with the site it protects, and Blob's Hobby
 allowance is shared across the project and pauses for thirty days when exceeded;
-GitHub is already a trust root here — it holds the code and runs the pipeline —
-whereas Blob would couple the backup to the hosting account; and git gives a
-dated, browsable history of dumps for free where Blob has no lifecycle rules and
-pruning would be code to write. Blob is the credible alternative if the trade
-reverses. The push needs one credential — a deploy key or a scoped token —
-inventoried in [#94](https://github.com/jeasmith/ithilien/issues/94).
+and GitHub is already a trust root here — it holds the code and runs the
+pipeline — whereas Blob would couple the backup to the hosting account. Blob is
+the credible alternative if the trade reverses. The push needs one credential — a
+deploy key or a scoped token — inventoried in
+[#94](https://github.com/jeasmith/ithilien/issues/94).
+
+**Rotation, not history.** Each dump is a full snapshot, so it grows with the
+library — tens of megabytes in year one, on the order of a hundred by year five —
+and a repository that commits every one accumulates them quadratically, with old
+blobs surviving any working-tree deletion and a single dump eventually meeting
+GitHub's 100 MiB file limit. So the backup repository does not keep git history.
+It holds the **last twelve monthly dumps as files on a single commit**: the job
+adds the newest, removes the oldest, and force-pushes one squashed commit.
+Retention is the twelve files, not the log. If a dump approaches the file limit,
+split it per table with `pg_dump --table` before reaching for LFS. GitHub's
+release assets — stored outside history, deletable, 2 GiB per file — are the
+fallback if a single-commit branch proves awkward.
 
 The dump is a flat file, not a publication source of truth. Committing the
 projection on every publication was considered and rejected for now: it would put
