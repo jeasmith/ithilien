@@ -328,20 +328,25 @@ once cannot drift between the page, the search endpoint and the sitemap.
 
 ## Roles
 
-Four, because ADR-0017 separates migration credentials from application and
+Three, because ADR-0017 separates migration credentials from application and
 pipeline ones:
 
-| Role             | Grants                                                             |
-| ---------------- | ------------------------------------------------------------------ |
-| `radar_public`   | `SELECT` on the public views only                                  |
-| `radar_private`  | `SELECT` on candidates and diagnostics; used only after owner auth |
-| `radar_pipeline` | `INSERT`/`UPDATE` for ingest, verdicts, writing, runs. No DDL      |
-| `radar_migrate`  | DDL only, used by the gated migration job                          |
+| Role             | Grants                                                        |
+| ---------------- | ------------------------------------------------------------- |
+| `radar_public`   | `SELECT` on the public views only                             |
+| `radar_pipeline` | `INSERT`/`UPDATE` for ingest, verdicts, writing, runs. No DDL |
+| `radar_migrate`  | DDL only                                                      |
 
 `/radar` is public read, private write, and the write side is `radar_pipeline`
-running in GitHub Actions rather than anything reachable from a browser. Which
-authentication mechanism gates `radar_private`, and where the pipeline credential
-lives, remain [#94](https://github.com/jeasmith/ithilien/issues/94).
+running in GitHub Actions rather than anything reachable from a browser. The map
+was redrawn on 2026-09-06 so that **GitHub is the private write surface**: a
+deep-dive request or a promotion from the backlog is a `workflow_dispatch` with a
+URL, and GitHub authenticates Jamie. The app therefore has no sign-in, no private
+pages and no private role. An earlier `radar_private` role for an authenticated
+backlog surface is gone with the surface; if a backlog UI returns as a later
+effort, the role returns with it. Browsing cuts in the meantime is the run's job
+summary or Neon's SQL console. Where each credential lives is
+[#94](https://github.com/jeasmith/ithilien/issues/94).
 
 ## Search and indexes
 
@@ -377,25 +382,53 @@ reproduce the public projection byte-for-byte and preserve every allocated slug,
 because a slug is a permanent public URL. A restore that renumbers ids is
 acceptable; one that reallocates a slug is a broken link.
 
-**Open — where does the export land, how often, and what proves the restore
-works?** Neon's free tier gives a restore window of hours, not an archive, so
-this is a real gap rather than a belt-and-braces extra. The shape of the answer
-is a destination, a cadence and a rehearsal. With source text no longer retained
-the whole library is small enough that a private repository is a credible
-destination and no new provider is implied; the cadence and rehearsal are still
-to be chosen.
+**Settled — a monthly compressed `pg_dump` to a private GitHub repository.**
+Settled with Jamie on 2026-09-06 as part of the redraw. With source text no
+longer retained, the whole library is tens of megabytes a year compressed, so
+the destination question that once implied a new object-storage provider
+collapses. A private repository was chosen over Vercel Blob for three reasons: a
+backup should not share a usage cap with the site it protects, and Blob's Hobby
+allowance is shared across the project and pauses for thirty days when exceeded;
+GitHub is already a trust root here — it holds the code and runs the pipeline —
+whereas Blob would couple the backup to the hosting account; and git gives a
+dated, browsable history of dumps for free where Blob has no lifecycle rules and
+pruning would be code to write. Blob is the credible alternative if the trade
+reverses. The push needs one credential — a deploy key or a scoped token —
+inventoried in [#94](https://github.com/jeasmith/ithilien/issues/94).
 
-**Open — is the export a flat-file dump or the publication source of truth?**
-These pull in different directions. A periodic dump is simple and adds nothing to
-the publish path. Committing the published projection to a private repository on
-every publication makes the escape hatch continuously proven and gives the
-archive real durability, but it puts a git write inside the one-shot publication
-transaction, which the idempotency contract has so far kept free of external
-dependencies.
+The dump is a flat file, not a publication source of truth. Committing the
+projection on every publication was considered and rejected for now: it would put
+a git write inside the one-shot publication path, which the idempotency contract
+has so far kept free of external dependencies, to prove something the monthly
+dump proves well enough at this size.
+
+**Deferred — the restore rehearsal.** The recovery requirement above is the test
+a rehearsal would run: restore the latest dump into a throwaway Postgres in
+Actions, assert every slug is present and the public projection's checksum
+matches. It is deliberately not in the first build; the map lists it under
+deferred work until there is something worth losing.
 
 ## What this sketch does not decide
 
-Rendering and cache revalidation are #91. The authentication mechanism and the
-pipeline's credentials are #94. Run status, partial publication and failure
-handling are #97. The category vocabulary is still open on the map. The ADR set
-is assembled in #96.
+Rendering and cache revalidation are #91. The credential inventory is #94. Run
+status, partial publication and failure handling are #97. The deep-dive
+workflow's inputs and first-publication path are #93. The category vocabulary is
+still open on the map. The ADR set is assembled in #96.
+
+## What the first build leaves out
+
+The map was redrawn on 2026-09-06 to build the original problem and no more.
+Everything in this sketch is still the model; these parts of it are not built
+first. Each is listed on the map under deferred work.
+
+- **The private backlog UI**, and with it the `radar_private` role.
+- **Roundup expansion into triage.** `sighting.via_article_id` stays, because a
+  roundup's links are sightings in the model. Those articles are simply not fed
+  to triage as candidates yet, which returns the pool to ~66 a day and takes
+  triage input down by two thirds — the lever that restores the map's original
+  motivation.
+- **Public per-run coverage pages.** The `coverage` table is written from the
+  first run; `/radar/sources` reads it; `/radar/sources/runs/<run-id>` waits.
+- **The gated migration job.** `radar_migrate` is used from a local command with
+  the migration reviewed in the PR.
+- **The restore rehearsal**, above.

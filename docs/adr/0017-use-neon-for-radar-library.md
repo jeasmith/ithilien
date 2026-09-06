@@ -41,6 +41,14 @@ public path never holds. Browser clients receive authorized results, never
 database credentials. No separate API service is introduced for the library. The
 authentication mechanism and pipeline writer credentials remain part of #94.
 
+**Revised, 2026-09-06.** The map was redrawn so that GitHub is the private write
+surface: a deep-dive request or a promotion from the backlog is a
+`workflow_dispatch` with a URL, authenticated by GitHub. The first build has no
+private backlog surface in the web app, so the owner-only read path and its role
+described above are not built; the app holds only the public role. The paragraph
+stands as the design for when a backlog UI returns as a later effort. Cuts are
+browsed in the run's job summary or Neon's console in the meantime.
+
 Use **Drizzle ORM and Drizzle Kit** for typed database access, schema definitions
 and migration tooling. Jamie accepted Drizzle on 2026-09-06. Its SQL-oriented
 query model fits Radar's relationships and publication transactions. Use explicit
@@ -84,6 +92,12 @@ production execution.
 The release implementation must coordinate Vercel deployment with this gate.
 An independent automatic Vercel deployment must not bypass it. This ADR records
 the required ordering; it does not change the current deployment workflow.
+
+**Deferred, 2026-09-06.** The gated job is the right end state and is not in the
+first build. Until the library holds data worth gating, migrations are reviewed
+in the pull request and applied from a local command using the dedicated
+migration credential. The expand-then-contract rule above applies from the first
+migration regardless. The map records this under deferred work.
 
 This accepts the store, ownership, web access, data-access tooling, source-text
 fingerprinting and migration execution choices.

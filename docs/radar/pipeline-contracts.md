@@ -8,6 +8,14 @@ Vocabulary is `CONTEXT.md`. The pipeline being replaced is described in
 specification — the ADRs are assembled in
 [#96](https://github.com/jeasmith/ithilien/issues/96).
 
+> **Redrawn 2026-09-06.** The map stepped back to build the original problem and
+> no more. Two things in this record are **deferred from the first build**, not
+> reversed: roundup links stay sightings in the model but are not fed to triage as
+> candidates yet, so the pool is ~66 a day rather than ~200 and the triage input
+> below falls by about two thirds; and the private backlog surface is GitHub —
+> promotion is a `workflow_dispatch` with a URL — so nothing here needs an
+> authenticated page. See the map's _Out of scope_ for the full list.
+
 ## The stage table
 
 | Stage                                              | Code or agent | Note                                                    |
