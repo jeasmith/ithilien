@@ -106,27 +106,37 @@ an article sighted by two sources appears once rather than twice.
 
 The editorial judgement passed on a candidate (`CONTEXT.md` § Verdict).
 
-| Column       | Notes                       |
-| ------------ | --------------------------- |
-| `id`         |                             |
-| `article_id` | See the open question below |
-| `run_id`     |                             |
-| `verdict`    | `kept` \| `cut`             |
-| `reason`     | Recorded either way         |
-| `category`   | Assigned on both verdicts   |
-| `decided_at` |                             |
+| Column       | Notes                                          |
+| ------------ | ---------------------------------------------- |
+| `id`         |                                                |
+| `article_id` | **Unique.** One terminal judgement per article |
+| `run_id`     |                                                |
+| `verdict`    | `kept` \| `cut`                                |
+| `reason`     | Recorded either way                            |
+| `category`   | Assigned on both verdicts                      |
+| `decided_at` |                                                |
 
 A row here is what suppression reads: the triage set is articles with no verdict
 that did not arrive through the mail bridge. That is the only suppression in the
 model, and it replaces the `seen` bit the old pipeline conflated four facts into.
 
-**Open — is a verdict one per article, or one per article per run?** Suppression
-requires that a judged article is never shown again, which reads as one terminal
-verdict and a unique constraint on `article_id`. But a cut article can be
-promoted to a deep dive later, and it is not clear whether that promotion
-overwrites the verdict, appends a second one, or sits outside the verdict model
-entirely as a separate owner action. The answer decides the constraint, and a
-unique constraint is much harder to remove later than to add.
+**Settled — one verdict per article, and promotion sits outside it.** A verdict
+is the agent's triage judgement and nothing else, so `article_id` is unique and
+suppression is simply "a row exists". Promoting a cut article to a deep dive does
+not touch this table: the request is its own recorded act in `deep_dive`, and the
+agent's `cut` stays exactly as it was passed, reason intact. That keeps `verdict`
+meaning one thing, keeps the record that the agent once said no — a cut is a
+decision, not a deletion — and means the deep-dive request, which
+[#93](https://github.com/jeasmith/ithilien/issues/93) is already going to record
+as an event, is the single source of truth for why a cut article has writing.
+Overwriting the verdict was rejected because it destroys the record; appending a
+second owner-authored verdict was rejected because it makes one table hold two
+different kinds of judgement.
+
+A consequence for the public projection: a cut article with a deep dive becomes
+public once #93's first-publication path has run, because its depth is `deep` and
+it has been published. Its verdict is still `cut`. The projection reads depth and
+publication, never the verdict, so this needs no special case.
 
 ### `brief`
 
