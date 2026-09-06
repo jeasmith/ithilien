@@ -152,14 +152,23 @@ The summary and "why this matters" that constitute a brief.
 | `written_at`       |                                   |
 | `write_attempt_id` | The attempt that produced it      |
 
-**Open — is a brief immutable in the database, or only immutable once
-published?** The route contract stores the brief once and renders it in both the
-issue and the article page, which only preserves an issue's fixed text if the
-brief itself never changes. That is the cheaper design and it is what the sketch
-assumes. It also means a typo in a published brief is permanent. If any
-correction path is wanted, `issue_entry` must freeze its own copy of the text
-rather than reference this row, and that decision has to be made now — it cannot
-be retrofitted to issues already published against a shared row.
+**Settled — a brief is immutable, in the database and everywhere else.** One row,
+referenced by the issue and the article page alike, never updated. The route
+contract's "stored once and rendered in both places" is therefore literal, and
+an issue's fixed text is preserved by the row never changing rather than by a
+frozen copy.
+
+The reason is not that the record must be inviolable. It is that a brief is
+**transient**: in most cases it is read once, on the day its issue publishes.
+Whatever lasting value an article page has comes from its sightings, its issue
+appearances and any deep dive, not from a brief being kept current. A correction
+path would add a second writer to this table in order to fix text almost nobody
+will read again, and every correction path grows — "fix the typo" is one step
+from "soften the claim". If a brief is wrong in a way that matters, a deep dive
+says so, which is the additive model doing its job. The alternative — `issue_entry`
+freezing its own copy so the brief could be corrected — was rejected on that
+basis; it is the one choice here that could not have been retrofitted, and it is
+now closed.
 
 ### `deep_dive`
 

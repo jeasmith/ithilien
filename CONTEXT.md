@@ -87,6 +87,10 @@ what the article contains. **"Why this matters"** says what it changes about a
 decision, a design, or a client conversation. Neither is the source's own text,
 and neither is enrichment.
 
+A brief is written once and, in most cases, read once — on the day its issue
+publishes. It is not maintained. What matters about an article afterwards
+accrues beside it, as sightings, issue appearances and deep dives.
+
 ### Category
 
 What an article is about. One per article, assigned when the article is judged —
