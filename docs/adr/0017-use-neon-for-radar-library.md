@@ -32,11 +32,14 @@ make the library shared application data.
 
 Radar's web application accesses Neon **through Radar's own server code**.
 Jamie accepted this access boundary on 2026-09-06. Public pages and the private
-backlog read the same database through separate permissions. The server verifies
-the signed-in user's identity before private reads; browser clients receive
-authorized results, never database credentials. No separate API service is
-introduced for the library. The authentication mechanism and pipeline writer
-credentials remain part of #94.
+backlog read the same database through separate permissions. The public role can
+read only published writing and the sanitised coverage the routes expose. Private
+reads — candidates, cuts without published writing, run diagnostics and retained
+source text — are permitted to the owner alone; the server verifies the signed-in
+user is the owner before issuing the query, and the query runs under a role the
+public path never holds. Browser clients receive authorized results, never
+database credentials. No separate API service is introduced for the library. The
+authentication mechanism and pipeline writer credentials remain part of #94.
 
 Use **Drizzle ORM and Drizzle Kit** for typed database access, schema definitions
 and migration tooling. Jamie accepted Drizzle on 2026-09-06. Its SQL-oriented

@@ -2,14 +2,14 @@
 
 Research for [#87](https://github.com/jeasmith/ithilien/issues/87), checked
 2026-09-06. **Recommendation: Neon Postgres with Drizzle**, owned by Radar. This
-is evidence for [#89](https://github.com/jeasmith/ithilien/issues/89), which still
-owns the choice, schema sketch, access boundary and ADR. Nothing is provisioned
-or implemented by this report.
+is evidence for [#89](https://github.com/jeasmith/ithilien/issues/89). Nothing is
+provisioned or implemented by this report.
 
-**Decision update, 2026-09-06:** Jamie selected Neon. The accepted store choice is
-recorded in [ADR-0017](../adr/0017-use-neon-for-radar-library.md). The comparison
-below preserves the evidence and recommendation; the remaining #89 design
-details are still to be settled.
+**Decision update, 2026-09-06:** Jamie selected Neon. The store choice, the
+ownership and access boundaries and the ORM are accepted and recorded in
+[ADR-0017](../adr/0017-use-neon-for-radar-library.md). #89 stays open only for
+the schema sketch and the export and recovery procedures. The comparison below
+preserves the evidence and recommendation as they stood before that decision.
 
 ## The workload being compared
 
@@ -50,16 +50,17 @@ USD prices below are the provider pages observed on the research date, excluding
 Vercel, GitHub Actions, agent usage and taxes. Allowances are not an operating
 budget or a promise of free indefinite retention.
 
-| Candidate           | Free allowance relevant here                                                                                                | Paid boundary and cost implication                                                                                                                                                                                                                                                                      |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Convex              | 1M function calls/month; 0.5 GB database, 0.5 GB search storage, 1 GB file storage; 1 GB database I/O and 1 GB egress.      | Starter has no base subscription and meters excess: $2.20/M calls, $0.22/GB database storage, $0.55/GB search storage, $0.22/GB database I/O, $0.132/GB egress at the displayed US East rate. Professional is $25/developer/month. These are separate meters. [Pricing](https://www.convex.dev/pricing) |
-| Neon Postgres       | 100 CU-hours/month/project; 0.5 GB storage/project; 5 GB public transfer/month; 100 projects; restore window up to 6 hours. | Launch: $0.106/CU-hour and $0.35/GB-month, no monthly minimum; history and excess transfer are additional. Free limit exhaustion suspends compute. One Radar library must fit its own project's allowance; 100 projects do not make a 50 GB database. [Pricing](https://neon.com/pricing)               |
-| Turso/libSQL        | 5 GB storage, 500M rows read/month, 10M rows written/month, 3 GB sync/month, 100 databases; 1-day point-in-time restore.    | Developer is $5.99/month with monthly billing. Developer includes 9 GB storage, 2.5B reads and 25M writes, then $0.75/GB, $1/B reads and $1/M writes. [Monthly pricing](https://turso.tech/pricing?frequency=monthly)                                                                                   |
-| Repository MDX/JSON | No separate database subscription.                                                                                          | Still consumes repository storage, workflow minutes, deployment/build capacity and maintenance. The current repository is public; storing the private library here is disqualified. A separate private repository and public publication projection add infrastructure and credentials.                 |
+| Candidate           | Free allowance relevant here                                                                                                | Paid boundary and cost implication                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Convex              | 1M function calls/month; 0.5 GB database, 0.5 GB search storage, 1 GB file storage; 1 GB database I/O and 1 GB egress.      | Starter has no base subscription and meters excess: $2.20/M calls, $0.22/GB database storage, $0.55/GB search storage, $0.22/GB database I/O, $0.132/GB egress at the displayed US East rate. Professional is $25/developer/month. These are separate meters. [Pricing](https://www.convex.dev/pricing)                                                                                                                                                                                                                      |
+| Neon Postgres       | 100 CU-hours/month/project; 0.5 GB storage/project; 5 GB public transfer/month; 100 projects; restore window up to 6 hours. | Launch: $0.106/CU-hour and $0.35/GB-month, no monthly minimum; history is additional. Exhausting a Free allowance, including the 5 GB transfer, suspends compute until the next cycle or an upgrade; Launch and Scale include 500 GB public transfer per project per month, then $0.10/GB, from 1 June 2026. One Radar library must fit its own project's allowance; 100 projects do not make a 50 GB database. [Pricing](https://neon.com/pricing), [Network transfer](https://neon.com/docs/introduction/network-transfer) |
+| Turso/libSQL        | 5 GB storage, 500M rows read/month, 10M rows written/month, 3 GB sync/month, 100 databases; 1-day point-in-time restore.    | Developer is $5.99/month with monthly billing. Developer includes 9 GB storage, 2.5B reads and 25M writes, then $0.75/GB, $1/B reads and $1/M writes. [Monthly pricing](https://turso.tech/pricing?frequency=monthly)                                                                                                                                                                                                                                                                                                        |
+| Repository MDX/JSON | No separate database subscription.                                                                                          | Still consumes repository storage, workflow minutes, deployment/build capacity and maintenance. The current repository is public; storing the private library here is disqualified. A separate private repository and public publication projection add infrastructure and credentials.                                                                                                                                                                                                                                      |
 
-Storage sensitivity, **calculated rather than measured**: 52,000 articles at
+Storage sensitivity, **calculated rather than measured**: 52,000 candidate rows
+— the ceiling if every arrival is a distinct article; dedupe lowers it — at
 2 KB of metadata each is ~104 MB/year before Sightings, writing, indexes and
-record overhead. Retaining an additional 10 KB of extracted text per article
+record overhead. Retaining an additional 10 KB of extracted text per row
 adds ~520 MB/year; 50 KB adds ~2.6 GB/year. Retaining 10 KB only for the 3,380
 written articles adds ~34 MB/year. Whether fetched bodies are retained, and for
 which articles, is not yet settled. Token estimates do not establish stored
@@ -68,9 +69,9 @@ an estimate of a provider's billed footprint.
 
 At this write rate all managed options plausibly start within their operation
 allowances. Storage and public read traffic are the uncertainties. Under a
-hypothetical continuously active 0.25-CU Neon compute, 730 hours uses 182.5
-CU-hours: more than Free permits, or ~$19.35/month in Launch compute before
-storage. At 1 GB and 20 active CU-hours, Launch's base compute-plus-storage is
+hypothetical continuously active 0.25-CU Neon compute would consume 182.5
+CU-hours over 730 hours: more than Free permits, or ~$19.35/month in Launch
+compute before storage. At 1 GB and 20 active CU-hours, Launch's base compute-plus-storage is
 ~$2.47/month, excluding history/transfer. These scenarios use the published
 rates above; neither is a measured Radar bill. Caching changes active time.
 
@@ -245,7 +246,7 @@ move that orchestration; it does introduce a backend deployment and more
 provider-specific query code. The source-filter search design is the specific
 trade-off to resolve, rather than dismissing it simply as “too powerful.”
 
-#89 should record the selected option and ORM, public/private access boundary,
+The decision ticket, #89, should record the selected option and ORM, public/private access boundary,
 retained-text policy and estimated bytes, migration credentials/process,
 publication transaction, and an export-and-restore escape hatch. Export stable
 article identities, sightings, verdicts, immutable writing, issue membership,
