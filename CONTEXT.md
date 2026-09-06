@@ -94,6 +94,11 @@ by which point the article has been considered, so it is better placed than the
 source-level default. A source also carries a category, but that is a fallback
 for articles not yet judged, and the grouping for coverage.
 
+Newsletters are the one exception, as they are throughout: they bypass judgement,
+so they take their source's category. A newsletter is about what the newsletter
+is about, and the articles it carries are categorised individually in their own
+right.
+
 ### Article kind
 
 The article's primary mode of writing: **News** reports developments, **Opinion**

@@ -13,8 +13,8 @@ A sketch, not a migration. Every table here is derived from a term in
 the column list, because the columns will move and the rules will not. Types are
 indicative. Nothing here is provisioned, and no Drizzle schema is written yet.
 
-Four points are **open** and marked as such; they are constraints the sketch
-cannot settle on its own.
+Points the sketch could not settle on its own are marked **open**; those since
+decided with Jamie are marked **settled** and say why.
 
 ## Ingest
 
@@ -51,7 +51,7 @@ The thing on the web, identified by where it lives (`CONTEXT.md` § Article).
 | `published_at`  | Canonical, from enrichment                                                |
 | `enriched_at`   | Null until enriched                                                       |
 | `depth`         | `candidate` \| `brief` \| `deep`. Climbed in order, never descended       |
-| `category`      | Null until judged. See the open question below                            |
+| `category`      | Null until judged, or set from the source for exempt newsletters          |
 | `slug`          | **Unique**, null until first publication, frozen thereafter               |
 | `first_seen_at` |                                                                           |
 
@@ -63,16 +63,17 @@ groups them.
 does, `candidate` otherwise. Storing it is a read-path convenience, and it must
 be maintained in the same transaction as the writing it reflects or it will lie.
 
-**Open — where does `category` come from for an exempt newsletter?** Triage
-assigns category on both verdicts specifically so that every judged article is
-categorised, including cuts. But newsletters bypass triage, and the write
-contract returns `summary`, `whyThisMatters`, `kind` and `isLead` — no category.
-So a published newsletter brief reaches a public page and the
-`/radar/articles` category filter with no article-level category, falling back to
-its source's, which `CONTEXT.md` calls "a fallback for articles not yet judged".
-A published newsletter has been written about but never categorised. Either the
-write contract gains a `category` field, or the fallback is accepted as
-legitimate for this one group and said so out loud.
+**Settled — an exempt newsletter takes its source's category.** Triage assigns
+category on both verdicts so that every judged article is categorised, but
+newsletters bypass triage and the write contract returns no category, so nothing
+in the agent path would ever populate this column for them. Code sets
+`article.category` from `source.category` on the exemption path. The column is
+therefore populated for every published article and the read path has no
+fallback logic — the fallback happened at write time, deterministically, and is
+recorded like any other value. Adding a `category` field to the write contract
+for this one group was rejected: it would give the column two writers, and a
+newsletter is about what the newsletter is about anyway. The articles a
+newsletter links are candidates in their own right and are categorised by triage.
 
 ### `sighting`
 
