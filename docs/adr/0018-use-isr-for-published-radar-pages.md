@@ -33,14 +33,19 @@ the shared Vercel Microfrontends origin.
 
 Use Incremental Static Regeneration for Radar's published content, archive,
 source-health and sitemap routes. Cache each route by its public path. Generate
-parameterized issue and article pages on their first request rather than querying
-the database from `generateStaticParams`.
+parameterized issue and article pages on their first request by returning an
+empty array from `generateStaticParams` and keeping `dynamicParams = true`,
+rather than querying the database while enumerating routes.
+
+Accept that fixed ISR routes read Neon while prerendering during `next build`.
+They must fail the build if the public projection is unavailable rather than
+deploy a synthetic or empty initial cache entry.
 
 The GitHub Actions write workflow invalidates affected paths through a
 secret-protected route handler on `https://www.ithilien.dev` after committing its
 database changes. It then verifies the affected public pages. Every ISR route
-also revalidates after 24 hours as a recovery backstop; on-demand invalidation and
-verification are the normal freshness mechanism.
+also schedules a revalidation attempt after 24 hours as a recovery backstop;
+on-demand invalidation and verification are the normal freshness mechanism.
 
 Render the searchable `/radar/articles` route dynamically because its open-ended
 search and filter parameters define the request. Do not enable Cache Components
@@ -59,22 +64,24 @@ superseded record of the initial static-export decision.
 - Most public reads are served without a database round trip.
 - Publication controls freshness precisely and can verify the result before the
   workflow reports success.
-- The 24-hour fallback prevents an invalidation fault from leaving cached content
-  stale indefinitely.
-- Deployments do not depend on Neon being reachable or enumerate an ever-growing
-  article library.
+- The 24-hour fallback schedules recovery from an invalidation fault without
+  making time-based revalidation the normal freshness mechanism.
+- Deployments do not enumerate an ever-growing article library.
 - The first build stays on stable ISR primitives without a Cache Components
   migration.
 
 ### Negative
 
 - The first request for an uncached issue or article waits for rendering.
+- Fixed public routes depend on Neon during `next build`; an unavailable public
+  projection fails the deployment.
 - Search and filtered article-library requests always invoke the application and
   query the database.
 - The workflow needs a protected revalidation endpoint and must coordinate a
   committed database write, invalidation and public verification.
 - A failed on-demand invalidation can expose stale content until verification
-  detects it or the time-based fallback runs.
+  detects it. The time-based fallback attempts recovery, but repeated
+  regeneration failures can leave the last successful entry stale indefinitely.
 
 ### Neutral
 
