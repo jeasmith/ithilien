@@ -24,6 +24,15 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "jeasmith"
+    ignore:
+      # ADR-0012 pins the project to TypeScript 6. A TypeScript 7 upgrade is
+      # an ecosystem-wide decision that needs its own ADR, not a weekly PR.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # @types/node tracks the runtime major, which is pinned to Node 24 in
+      # .nvmrc, engines.node and the Dockerfile. Bump them together.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       # Next.js and React move in lockstep — a React major without matching
       # @types/react (or an eslint-config-next matching the Next version) does
