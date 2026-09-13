@@ -22,16 +22,22 @@ decided with Jamie are marked **settled** and say why.
 
 One row per place articles are surfaced from (`CONTEXT.md` § Source).
 
-| Column            | Notes                                                              |
-| ----------------- | ------------------------------------------------------------------ |
-| `id`              |                                                                    |
-| `name`            | Unique; the name shown on `/radar/sources`                         |
-| `category`        | The fallback category, and the grouping for coverage               |
-| `mechanism`       | `feed` \| `scrape` \| `api` — an implementation, not a kind        |
-| `endpoint`        | **Private.** Feed URLs and inbox addresses are bearer capabilities |
-| `via_mail_bridge` | True for the three email-only sources                              |
-| `active`          |                                                                    |
-| `last_success_at` | Denormalised for `/radar/sources`; derivable from `coverage`       |
+| Column            | Notes                                                                   |
+| ----------------- | ----------------------------------------------------------------------- |
+| `id`              |                                                                         |
+| `name`            | Unique; the name shown on `/radar/sources`                              |
+| `category`        | The fallback category, and the grouping for coverage                    |
+| `mechanism`       | `feed` \| `scrape` \| `api` — an implementation, not a kind             |
+| `endpoint`        | A public feed URL. Null when the endpoint is a secret                   |
+| `endpoint_secret` | The environment variable naming a bearer endpoint — the name, not value |
+| `via_mail_bridge` | True for the three email-only sources                                   |
+| `active`          |                                                                         |
+| `last_success_at` | Denormalised for `/radar/sources`; derivable from `coverage`            |
+
+A check constraint requires exactly one of `endpoint` and `endpoint_secret`.
+**Settled in #94** ([credentials.md](./credentials.md)): the Kill The Newsletter
+feed URL is a bearer capability, so it lives in Actions secrets and the database
+holds only its name.
 
 `via_mail_bridge` is load-bearing twice over: it assigns the `Newsletters`
 section and it grants the triage exemption. The bridge is not a source, so it is
@@ -319,9 +325,9 @@ forbids private feed URLs and raw errors in public output, and a column that is
 never selected by the public role cannot leak through a forgotten code path.
 
 `status_private` is **redacted at write time**, not raw: before storing an error,
-code replaces every occurrence of a known bearer capability — each
-`source.endpoint`, the inbox address, any token the fetch used — with a
-placeholder. "Private" means not shown on the site; it does not mean a safe place
+code replaces every occurrence of a known bearer capability — every secret value
+the run loaded from its environment, including each `source.endpoint_secret`
+target — with a placeholder. "Private" means not shown on the site; it does not mean a safe place
 for secrets, because this column is in the monthly dump. The same rule applies to
 `run_anomaly.raw_row`, which holds an agent's output row and should never contain
 a capability in the first place, but is redacted on the same path for the same
@@ -359,14 +365,15 @@ once cannot drift between the page, the search endpoint and the sitemap.
 
 ## Roles
 
-Three, because ADR-0017 separates migration credentials from application and
-pipeline ones:
+Four, because ADR-0017 separates migration credentials from application and
+pipeline ones, and #94 separates the export from both:
 
 | Role             | Grants                                                                                                  |
 | ---------------- | ------------------------------------------------------------------------------------------------------- |
 | `radar_public`   | `SELECT` on the public views only                                                                       |
 | `radar_pipeline` | `SELECT`/`INSERT`/`UPDATE` on the pipeline's tables and `USAGE` on their sequences. No `DELETE`, no DDL |
-| `radar_migrate`  | DDL, plus the DML a reviewed migration needs: its journal and backfills                                 |
+| `radar_export`   | `SELECT` on every table and sequence, for the monthly dump. No writes                                   |
+| `radar_migrate`  | DDL, plus the DML a reviewed migration needs: its journal and backfills. Owns the tables                |
 
 `radar_pipeline` reads as well as writes, because the pipeline's idempotency is
 read-before-write at every stage: ingest checks `article.url` and `sighting`
@@ -386,9 +393,10 @@ deep-dive request or a promotion from the backlog is a `workflow_dispatch` with 
 URL, and GitHub authenticates Jamie. The app therefore has no sign-in, no private
 pages and no private role. An earlier `radar_private` role for an authenticated
 backlog surface is gone with the surface; if a backlog UI returns as a later
-effort, the role returns with it. Browsing cuts in the meantime is the run's job
-summary or Neon's SQL console. Where each credential lives is
-[#94](https://github.com/jeasmith/ithilien/issues/94).
+effort, the role returns with it. Browsing cuts in the meantime is Neon's SQL
+console, not the run's job summary: this repository is public, so Actions output
+is too. Where each credential lives, and why `radar_migrate` is never stored, is
+[credentials.md](./credentials.md).
 
 ## Search and indexes
 
@@ -433,9 +441,9 @@ backup should not share a usage cap with the site it protects, and Blob's Hobby
 allowance is shared across the project and pauses for thirty days when exceeded;
 and GitHub is already a trust root here — it holds the code and runs the
 pipeline — whereas Blob would couple the backup to the hosting account. Blob is
-the credible alternative if the trade reverses. The push needs one credential — a
-deploy key or a scoped token — inventoried in
-[#94](https://github.com/jeasmith/ithilien/issues/94).
+the credible alternative if the trade reverses. The dump reads through
+`radar_export` and pushes with a deploy key scoped to the backup repository
+([credentials.md](./credentials.md)).
 
 **Rotation, not history.** Each dump is a full snapshot, so it grows with the
 library — tens of megabytes in year one, on the order of a hundred by year five —
@@ -455,15 +463,11 @@ a git write inside the one-shot publication path, which the idempotency contract
 has so far kept free of external dependencies, to prove something the monthly
 dump proves well enough at this size.
 
-**What the dump must not carry.** Diagnostics are redacted at write time (see
-`coverage`), so the only bearer capability in the schema is `source.endpoint` —
-the feed URLs and the inbox address. A dump that includes it is a copy of those
-capabilities in a second place. Whether `source.endpoint` lives in the database at
-all, or stays in Actions secrets keyed by source name with the database holding
-only the name, is a question for the credential inventory in
-[#94](https://github.com/jeasmith/ithilien/issues/94); until it is answered, the
-dump excludes that column, which `pg_dump` cannot do directly, so the export
-dumps `source` through a view that omits it.
+**What the dump must not carry.** Nothing, by construction. Diagnostics are
+redacted at write time (see `coverage`), and **settled in #94**, bearer endpoints
+live in Actions secrets with the database holding only their names
+(`source.endpoint_secret`). The schema therefore holds no credential value, and
+the dump includes every table as it is — no view is needed to omit a column.
 
 **Deferred — the restore rehearsal.** The recovery requirement above is the test
 a rehearsal would run: restore the latest dump into a throwaway Postgres in
@@ -473,7 +477,8 @@ deferred work until there is something worth losing.
 
 ## What this sketch does not decide
 
-Rendering and cache revalidation are #91. The credential inventory is #94. Run
+Rendering and cache revalidation are #91. The credential inventory is #94, in
+[credentials.md](./credentials.md). Run
 status, partial publication and failure handling are #97. The deep-dive
 workflow's inputs and first-publication path are #93. The category vocabulary is
 still open on the map. The ADR set is assembled in #96.
@@ -493,5 +498,6 @@ first. Each is listed on the map under deferred work.
 - **Public per-run coverage pages.** The `coverage` table is written from the
   first run; `/radar/sources` reads it; `/radar/sources/runs/<run-id>` waits.
 - **The gated migration job.** `radar_migrate` is used from a local command with
-  the migration reviewed in the PR.
+  the migration reviewed in the PR, its credential fetched through `neonctl` and
+  never stored.
 - **The restore rehearsal**, above.

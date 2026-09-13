@@ -124,8 +124,12 @@ These are the constraints that are easy to get wrong:
   clients can launch `pnpm --silent lsp`; VS Code is configured to use the
   workspace TypeScript SDK. Fall back to text search only when semantic
   navigation is not available.
-- **No secrets in code**: All environment variables go through Vercel env
-  config.
+- **No secrets in code**: App runtime variables go through Vercel env config.
+  Radar's workflow secrets live in the `radar-production` GitHub Environment,
+  restricted to `main`. The `radar_migrate` credential is never stored; it is
+  fetched per command through `neonctl`. This repository is public, so Actions
+  logs and job summaries are too — never print cuts, verdicts or agent output.
+  See `docs/radar/credentials.md`.
 
 ## Working with This Codebase
 

@@ -47,7 +47,8 @@ surface: a deep-dive request or a promotion from the backlog is a
 private backlog surface in the web app, so the owner-only read path and its role
 described above are not built; the app holds only the public role. The paragraph
 stands as the design for when a backlog UI returns as a later effort. Cuts are
-browsed in the run's job summary or Neon's console in the meantime.
+browsed in Neon's console in the meantime; not the run's job summary, which is
+public in this repository (#94, `docs/radar/credentials.md`).
 
 Use **Drizzle ORM and Drizzle Kit** for typed database access, schema definitions
 and migration tooling. Jamie accepted Drizzle on 2026-09-06. Its SQL-oriented
