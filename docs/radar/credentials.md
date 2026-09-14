@@ -25,17 +25,18 @@ so `connect-src 'self'` does not apply to it.
 
 ## Inventory
 
-| Credential                                    | Can do                                              | Lives in                                           | Environments                        | Rotation                                 | If it leaks                                                        |
-| --------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- | ----------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
-| `RADAR_DATABASE_URL` (`radar_public`, pooled) | `SELECT` on the public views                        | Radar's Vercel project, set by hand                | Production, Preview, Development    | On suspicion                             | Nothing that is not already on the site                            |
-| `RADAR_PIPELINE_DATABASE_URL` (direct)        | Read and write pipeline tables; no `DELETE`, no DDL | GitHub Environment `radar-production`              | `main` only                         | On suspicion                             | The private backlog is readable; verdicts and issues can be forged |
-| `RADAR_EXPORT_DATABASE_URL` (direct)          | `SELECT` on every table and sequence                | GitHub Environment `radar-production`              | `main` only                         | On suspicion                             | The private backlog is readable                                    |
-| `radar_migrate`                               | DDL, the migration journal, backfills               | **Nowhere.** Fetched per command through `neonctl` | Local, via the container            | Neon console, on suspicion               | Schema and data can be changed — requires Jamie's Neon login first |
-| Neon owner role                               | Everything                                          | Jamie's Neon account                               | Bootstrap only                      | Neon console                             | Everything                                                         |
-| `RADAR_REVALIDATE_SECRET`                     | Force regeneration of Radar cache paths             | Radar's Vercel project **and** `radar-production`  | Vercel Production only; `main` only | On suspicion; one run may fail meanwhile | Extra regeneration, one database read per path                     |
-| `RADAR_BRIDGE_FEED_URL`                       | Read every newsletter forwarded to the bridge inbox | GitHub Environment `radar-production`              | `main` only                         | Regenerate at Kill The Newsletter        | The newsletters are readable                                       |
-| `RADAR_BACKUP_DEPLOY_KEY`                     | Push to the private backup repository               | GitHub Environment `radar-production`              | `main` only                         | On suspicion                             | The twelve dumps can be overwritten or deleted                     |
-| `CLAUDE_CODE_OAUTH_TOKEN`                     | Spend Jamie's Claude subscription allowance         | Repository secret, as today                        | Every branch                        | **Annually, by hand** — see below        | The shared allowance can be exhausted                              |
+| Credential                                    | Can do                                              | Lives in                                                     | Environments                        | Rotation                                                                                           | If it leaks                                                                                                                     |
+| --------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `RADAR_DATABASE_URL` (`radar_public`, pooled) | `SELECT` on the public views                        | Radar's Vercel project, set by hand                          | Production, Preview, Development    | On suspicion                                                                                       | Nothing that is not already on the site                                                                                         |
+| `RADAR_PIPELINE_DATABASE_URL` (direct)        | Read and write pipeline tables; no `DELETE`, no DDL | GitHub Environment `radar-production`                        | `main` only                         | On suspicion                                                                                       | The private backlog is readable; verdicts and issues can be forged                                                              |
+| `RADAR_EXPORT_DATABASE_URL` (direct)          | `SELECT` on every table and sequence                | GitHub Environment `radar-production`                        | `main` only                         | On suspicion                                                                                       | The private backlog and run records — raw feed errors with capabilities already redacted, and dropped agent rows — are readable |
+| `radar_migrate`                               | DDL, the migration journal, backfills               | **Nowhere.** Fetched per command through `neonctl`           | Local, via the container            | Neon console, on suspicion                                                                         | Schema and data can be changed — requires Jamie's Neon login first                                                              |
+| Neon owner role                               | Everything                                          | Jamie's Neon account                                         | Bootstrap only                      | Neon console                                                                                       | Everything                                                                                                                      |
+| `RADAR_REVALIDATE_SECRET`                     | Force regeneration of Radar cache paths             | Radar's Vercel project **and** `radar-production`            | Vercel Production only; `main` only | On suspicion; one run may fail meanwhile                                                           | Extra regeneration, one database read per path                                                                                  |
+| `RADAR_BRIDGE_FEED_URL`                       | Read every newsletter forwarded to the bridge inbox | GitHub Environment `radar-production`                        | `main` only                         | Regenerate at Kill The Newsletter                                                                  | The newsletters are readable                                                                                                    |
+| Bridge inbox address                          | Deliver mail into the bridge feed                   | Jamie's iCloud mail rules and Kill The Newsletter; not Radar | None                                | With the feed URL: a new Kill The Newsletter feed, then the mail rules and `RADAR_BRIDGE_FEED_URL` | Junk can be injected into the feed, which triage then judges                                                                    |
+| `RADAR_BACKUP_DEPLOY_KEY`                     | Push to the private backup repository               | GitHub Environment `radar-production`                        | `main` only                         | On suspicion                                                                                       | The twelve dumps can be overwritten or deleted                                                                                  |
+| `CLAUDE_CODE_OAUTH_TOKEN`                     | Spend Jamie's Claude subscription allowance         | Repository secret, as today                                  | Every branch                        | **Annually, by hand** — see below                                                                  | The shared allowance can be exhausted                                                                                           |
 
 ## Decisions
 
@@ -54,7 +55,12 @@ scheduled run every weekday, so there is none.
 
 `CLAUDE_CODE_OAUTH_TOKEN` stays a repository secret. `claude.yml` and
 `claude-code-review.yml` need it on pull request branches, and a second copy
-would double the annual rotation.
+would double the annual rotation. GitHub gives no repository secrets to
+`pull_request` runs from forks, and `claude.yml` only responds to owners,
+members and collaborators, so the token reaches branches pushed by people with
+write access. Whether those existing workflows should narrow further is outside
+this record; Radar's workflows never use the repository copy for anything but
+agent calls on `main`.
 
 The environment is configuration that the repository cannot show, so the spec
 must list it.
@@ -70,7 +76,9 @@ null `endpoint` and an `endpoint_secret` naming the environment variable
 one of the two. The pipeline resolves the endpoint from whichever is set; a named
 secret that is missing from the environment is a coverage failure for that
 source, not a crashed run. The inbox address is used only by the iCloud mail
-rules, never by the pipeline, so it is not in this inventory.
+rules, never by the pipeline, so Radar holds no copy of it. It is inventoried
+because the two are rotated together: replacing the Kill The Newsletter feed
+issues a new address and a new feed URL at once.
 
 This puts no credential value in the database, so the monthly dump includes
 `source` directly. It also makes write-time redaction exact — the redactor
@@ -178,9 +186,12 @@ concurrency:
 
 Without `queue`, a group holds one pending run and a newer arrival cancels it, so
 two deep dives dispatched during a daily run would silently lose the first.
-`queue: max` holds up to 100 pending runs in first-in, first-out order. It cannot
-be combined with `cancel-in-progress: true`, which a writer would not want
-anyway. The monthly export is outside the group: `pg_dump` reads a consistent
+`queue: max` holds up to 100 pending runs, processed first-in, first-out by when
+each began waiting. That is scheduling behaviour, not an ordering guarantee, and
+a run arriving at a full queue is not held — so no run may depend on another
+having run before it; each stage stays idempotent and read-before-write, as the
+pipeline contracts already require. `queue` cannot be combined with
+`cancel-in-progress: true`, which a writer would not want anyway. The monthly export is outside the group: `pg_dump` reads a consistent
 snapshot and holds no write credential.
 
 Runaway protection is structural rather than a budget:
