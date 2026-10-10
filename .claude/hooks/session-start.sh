@@ -7,6 +7,7 @@
 # persists PATH for the rest of the session through CLAUDE_ENV_FILE.
 #
 # Local sessions use the host toolchain or Docker, so the script exits at once.
+# Not -u: nvm.sh reads unset variables and fails under it.
 set -eo pipefail
 
 [ "${CLAUDE_CODE_REMOTE:-}" = "true" ] || exit 0
@@ -33,7 +34,9 @@ fi
 
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 corepack enable > /dev/null
-pnpm install --frozen-lockfile > /tmp/session-start-install.log 2>&1 \
-  || { tail -20 /tmp/session-start-install.log; exit 1; }
+install_log="$(mktemp)"
+trap 'rm -f "$install_log"' EXIT
+pnpm install --frozen-lockfile > "$install_log" 2>&1 \
+  || { tail -20 "$install_log"; exit 1; }
 
 echo "Session ready: Node $(node --version), pnpm $(pnpm --version), dependencies installed."

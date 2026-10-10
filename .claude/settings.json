@@ -17,7 +17,14 @@
       "Bash(gh run list *)",
       "Bash(gh run view *)"
     ],
-    "deny": ["Bash(git push --force *)", "Bash(git push -f *)"]
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push *--force*)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
+      "Bash(git push * +*)"
+    ]
   },
   "hooks": {
     "SessionStart": [
