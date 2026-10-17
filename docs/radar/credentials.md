@@ -36,7 +36,7 @@ so `connect-src 'self'` does not apply to it.
 | `RADAR_BRIDGE_FEED_URL`                       | Read every newsletter forwarded to the bridge inbox | GitHub Environment `radar-production`                        | `main` only                         | Regenerate at Kill The Newsletter                                                                  | The newsletters are readable                                                                                                    |
 | Bridge inbox address                          | Deliver mail into the bridge feed                   | Jamie's iCloud mail rules and Kill The Newsletter; not Radar | None                                | With the feed URL: a new Kill The Newsletter feed, then the mail rules and `RADAR_BRIDGE_FEED_URL` | Junk can be injected into the feed, which triage then judges                                                                    |
 | `RADAR_BACKUP_DEPLOY_KEY`                     | Push to the private backup repository               | GitHub Environment `radar-production`                        | `main` only                         | On suspicion                                                                                       | The twelve dumps can be overwritten or deleted                                                                                  |
-| `CLAUDE_CODE_OAUTH_TOKEN`                     | Spend Jamie's Claude subscription allowance         | Repository secret, as today                                  | Every branch                        | **Annually, by hand** — see below                                                                  | The shared allowance can be exhausted                                                                                           |
+| `CLAUDE_CODE_OAUTH_TOKEN`                     | Spend Jamie's Claude subscription allowance         | Repository secret, plus a Dependabot secret copy             | Every branch                        | **Annually, by hand** — see below                                                                  | The shared allowance can be exhausted                                                                                           |
 
 ## Decisions
 
@@ -54,8 +54,11 @@ a write credential by running a workflow. A reviewer gate would stall the
 scheduled run every weekday, so there is none.
 
 `CLAUDE_CODE_OAUTH_TOKEN` stays a repository secret. `claude.yml` and
-`claude-code-review.yml` need it on pull request branches, and a second copy
-would double the annual rotation. GitHub gives no repository secrets to
+`claude-code-review.yml` need it on pull request branches. A second copy lives
+in the repository's Dependabot secrets, because runs Dependabot triggers
+receive only those, and without it `claude-code-review.yml` fails on every
+Dependabot pull request. Both copies hold the same token and are replaced
+together. GitHub gives no repository secrets to
 `pull_request` runs from forks, and `claude.yml` only responds to owners,
 members and collaborators, so the token reaches branches pushed by people with
 write access. Whether those existing workflows should narrow further is outside
@@ -209,7 +212,8 @@ Runaway protection is structural rather than a budget:
 ### The annual token cliff gets a date to check
 
 `CLAUDE_CODE_OAUTH_TOKEN` has a one-year lifetime, is minted interactively and
-cannot be rotated automatically. Alongside it, a non-secret repository variable
+cannot be rotated automatically. A replacement goes into both the repository
+secret and the Dependabot secret. Alongside it, a non-secret repository variable
 `CLAUDE_CODE_OAUTH_TOKEN_EXPIRES` records its expiry date, updated whenever
 Jamie mints a replacement. That turns the cliff into a date a workflow can check
 ahead of time rather than a silence noticed afterwards. The warning mechanism and
