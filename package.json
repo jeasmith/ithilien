@@ -36,10 +36,10 @@
   },
   "devDependencies": {
     "eslint-plugin-react-hooks": "^7.1.1",
-    "oxlint": "^1.88.0",
+    "oxlint": "^1.89.0",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
-    "turbo": "^2.11.8",
+    "turbo": "^2.11.10",
     "typescript-language-server": "^6.0.2"
   }
 }
