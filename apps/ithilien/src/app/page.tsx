@@ -7,25 +7,14 @@
  *
  * @see docs/adr/0006-static-rendering-by-default.md
  */
-import Link from "next/link";
-
-/** Year captured when this module is evaluated during `next build` (static HTML). */
-const COPYRIGHT_YEAR = new Date().getFullYear();
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 
 /** Renders the landing page with site intro, metadata links, and footer. */
 export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto flex h-16 w-full max-w-3xl items-center px-6">
-          <Link
-            href="/"
-            className="font-mono text-lg font-semibold tracking-tight"
-          >
-            ithilien
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-16">
         <div className="flex flex-1 flex-col justify-center gap-8">
@@ -63,12 +52,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-6 text-sm text-muted-foreground">
-          <span>&copy; {COPYRIGHT_YEAR} Jamie Smith</span>
-          <span>MIT License</span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

@@ -9,6 +9,10 @@ export default defineConfig({
     alias: {
       "@": resolve(__dirname, "./src"),
     },
+    // @repo/ui only peers on React, so resolve React from this app when a
+    // shared component imports it. Next.js does the same through
+    // transpilePackages; Vitest needs telling.
+    dedupe: ["react", "react-dom"],
   },
   test: {
     environment: "jsdom",

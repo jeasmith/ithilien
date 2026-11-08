@@ -1,0 +1,91 @@
+import { FlowStepper } from "@/components/article/flow-stepper";
+import { PkceDemo } from "@/components/article/pkce-demo";
+import { Todo } from "@/components/article/todo";
+import { authorizationCodeFlow } from "./authorization-code-flow";
+// Jamie: this is your article. Each <Todo> marks a section to write; delete
+// it when the section is done. Markdown works as usual, and the interactive
+// pieces are ordinary React components imported above.
+
+# How OAuth and OpenID Connect work
+
+<Todo>
+  An opening of two or three sentences: who this is for and what they will be
+  able to do at the end. For example, read a sign-in redirect in the browser's
+  network tab and say what each parameter is for.
+</Todo>
+
+## The problem OAuth solves
+
+<Todo>
+  - Before OAuth, an app that wanted your calendar asked for your password.
+    What goes wrong with that?
+  - OAuth is about delegated *authorization*: letting an app do something on
+    your behalf. It is not, by itself, a way to sign in. Say this early; the
+    rest of the article leans on it.
+</Todo>
+
+## Who is involved
+
+<Todo>
+  The four roles from RFC 6749 §1.1, in plain words, with the names the stepper
+  below uses: the user (resource owner), the app (client), the auth server
+  (authorization server) and the API (resource server).
+</Todo>
+
+## The authorization code flow
+
+<Todo>
+  A short lead-in, then let the reader step through. Afterwards, point out the
+  front channel (through the browser) and the back channel (app to server), and
+  why the tokens only ever travel on the back channel.
+</Todo>
+
+<FlowStepper
+  label="Authorization code flow with PKCE"
+  steps={authorizationCodeFlow}
+  oidcToggle
+/>
+
+## Why PKCE
+
+<Todo>
+  - What attack does PKCE stop? (A stolen authorization code being redeemed
+    by someone else.)
+  - Why can the challenge travel in the open when the verifier cannot?
+  - Why it is now recommended for every client, not just mobile apps
+    (RFC 9700).
+</Todo>
+
+<PkceDemo />
+
+## Access tokens, refresh tokens and ID tokens
+
+<Todo>
+  Who each token is for, how long it lives, and what the holder is allowed to do
+  with it. The key line: the access token is for the API, the ID token is for
+  the app.
+</Todo>
+
+## What OpenID Connect adds
+
+<Todo>
+  Untick “Include OpenID Connect” in the stepper and compare. Cover the openid
+  scope, the ID token and its claims, nonce, the UserInfo endpoint and discovery
+  (`/.well-known/openid-configuration`).
+</Todo>
+
+## Common mistakes
+
+<Todo>
+  A short list with the reason each one hurts. Candidates: using the implicit
+  flow, treating an access token as proof of who the user is, skipping `aud` or
+  `nonce` checks, loose redirect URI matching, and keeping tokens where page
+  scripts can read them.
+</Todo>
+
+## Further reading
+
+- [RFC 6749: The OAuth 2.0 Authorization Framework](https://www.rfc-editor.org/rfc/rfc6749)
+- [RFC 7636: Proof Key for Code Exchange (PKCE)](https://www.rfc-editor.org/rfc/rfc7636)
+- [RFC 9700: Best Current Practice for OAuth 2.0 Security](https://www.rfc-editor.org/rfc/rfc9700)
+- [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)

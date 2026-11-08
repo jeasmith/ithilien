@@ -28,7 +28,7 @@ describe("microfrontends routing", () => {
   it("keeps the site root on Ithilien", () => {
     expect(() =>
       validateRouting(CONFIG, {
-        ithilien: ["/", "/about", "/posts/a-post"],
+        ithilien: ["/", "/about", "/posts/a-post", "/posts/oauth-and-oidc"],
       }),
     ).not.toThrow();
   });
