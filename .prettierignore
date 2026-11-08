@@ -5,3 +5,6 @@ out
 build
 coverage
 pnpm-lock.yaml
+# Prettier's MDX parser predates MDX 3 and rewrites Markdown inside JSX, such
+# as lists in an article's components. See docs/adr/0019.
+*.mdx
